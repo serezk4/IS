@@ -90,6 +90,9 @@ dependencies {
     implementation(libs.spring.messaging)
     implementation(libs.caffeine)
 
+    implementation(libs.resilience4j.spring)
+    implementation(libs.resilience4j.ratelimiter)
+
     implementation(libs.jackson.module.kotlin)
 
     runtimeOnly(libs.postgresql)
