@@ -7,7 +7,6 @@ import com.serezk4.api.model.HumanDto
 import com.serezk4.entity.City
 import com.serezk4.entity.Coordinates
 import com.serezk4.entity.Human
-import com.serezk4.validator.validate
 import org.springframework.data.domain.Page
 
 fun CityDto.toEntity() = City(
