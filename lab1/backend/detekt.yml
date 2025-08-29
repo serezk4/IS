@@ -1,0 +1,9 @@
+style:
+  ThrowsCount:
+    active: true
+    max: 5
+  MaxLineLength:
+    active: true
+    maxLineLength: 150
+  ForbiddenComment:
+    active: false

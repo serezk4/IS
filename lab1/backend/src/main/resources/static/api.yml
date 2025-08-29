@@ -1,0 +1,385 @@
+openapi: 3.0.3
+info:
+  title: Backend API
+  version: "1.0.0"
+servers:
+  - url: /
+security:
+  - bearerAuth: [ ]
+tags:
+  - name: Objects
+    description: управление объектами
+  - name: Users
+    description: управление пользователями
+
+paths:
+  /api/v1/objects:
+    post:
+      summary: Добавить новый объект
+      description: Добавляет новый объект в систему.
+      security:
+        - bearerAuth: [ ]
+      tags: [ Objects ]
+      operationId: createObject
+      requestBody:
+        description: объект для добавления
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CityDto"
+      responses:
+        "200":
+          description: Объект успешно создан.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CityDto"
+        "400":
+          description: Клиентский запрос некорректен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+    get:
+      summary: Получить список объектов
+      description: Возвращает список всех объектов в системе.
+      security:
+        - bearerAuth: [ ]
+      tags: [ Objects ]
+      operationId: getObjects
+      parameters:
+        - name: page
+          in: query
+          description: Номер страницы (0-based)
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: Размер страницы
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          description: Сортировка в формате поле,asc|desc. Можно указать несколько.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "200":
+          description: Список объектов успешно получен.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedCityPage"
+        "400":
+          description: Клиентский запрос некорректен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+
+  /api/v1/objects/{id}:
+    patch:
+      summary: Обновить существующий объект
+      description: Обновляет данные существующего объекта в системе.
+      security:
+        - bearerAuth: [ ]
+      tags: [ Objects ]
+      operationId: patchObject
+      parameters:
+        - name: id
+          in: path
+          description: Идентификатор объекта для обновления
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        description: объект для обновления
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CityDto"
+      responses:
+        "200":
+          description: Объект успешно обновлен.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CityDto"
+        "400":
+          description: Клиентский запрос некорректен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+    get:
+      summary: Получить объект по ID
+      description: Возвращает данные объекта по его идентификатору.
+      security:
+        - bearerAuth: [ ]
+      tags: [ Objects ]
+      operationId: getObjectById
+      parameters:
+        - name: id
+          in: path
+          description: Идентификатор объекта для обновления
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: Объект успешно получен.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CityDto"
+        "400":
+          description: Клиентский запрос некорректен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+    delete:
+      summary: Удалить объект по ID
+      description: Удаляет объект из системы по его идентификатору.
+      security:
+        - bearerAuth: [ ]
+      tags: [ Objects ]
+      operationId: deleteObjectById
+      parameters:
+        - name: id
+          in: path
+          description: Идентификатор объекта для обновления
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: Объект успешно удален.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        "400":
+          description: Клиентский запрос некорректен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "403":
+          description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+  /api/v1/users/signup:
+    post:
+      tags: [ Users ]
+      summary: Зарегистрировать нового пользователя
+      operationId: signup
+      requestBody:
+        description: Данные для регистрации нового пользователя
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserSignupRequest"
+      responses:
+        "200":
+          description: Пользователь успешно зарегистрирован
+        "400":
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "500":
+          description: Внутренняя ошибка сервера
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT для авторизации запросов"
+
+  schemas:
+    FormattedApiException:
+      type: object
+      description: "Ошибки API (в т.ч. 500)"
+      properties:
+        errorCode:
+          type: string
+          description: "Код ошибки"
+        message:
+          type: string
+          description: "Локализованное описание ошибки"
+      required:
+        - errorCode
+    FormattedCityPage:
+      type: object
+      description: "Форматированная страница с данными и метаданными пагинации"
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/CityDto'
+        page:
+          type: integer
+          description: "Номер страницы (0..N)"
+        size:
+          type: integer
+          description: "Размер страницы"
+        totalElements:
+          type: integer
+          description: "Общее количество элементов"
+        totalPages:
+          type: integer
+          description: "Общее количество страниц"
+        last:
+          type: boolean
+          description: "Является ли текущая страница последней"
+      required:
+        - content
+        - page
+        - size
+        - totalElements
+        - totalPages
+        - last
+    CityDto:
+      type: object
+      required:
+        - name
+        - coordinates
+        - population
+        - climate
+        - government
+        - governor
+        - timezone
+        - metersAboveSeaLevel
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+        coordinates:
+          $ref: '#/components/schemas/CoordinatesDto'
+        creationDate:
+          type: string
+          format: date
+        area:
+          type: number
+          format: float
+        population:
+          type: integer
+          format: int64
+        establishmentDate:
+          type: string
+          format: date-time
+        capital:
+          type: boolean
+          nullable: true
+        metersAboveSeaLevel:
+          type: integer
+        timezone:
+          type: integer
+        climate:
+          $ref: '#/components/schemas/Climate'
+        government:
+          $ref: '#/components/schemas/Government'
+        governor:
+          $ref: '#/components/schemas/HumanDto'
+    CoordinatesDto:
+      type: object
+      required:
+        - x
+        - y
+      properties:
+        x:
+          type: integer
+        y:
+          type: number
+          format: float
+    HumanDto:
+      type: object
+      properties:
+        birthday:
+          type: string
+          format: date
+    Climate:
+      type: string
+      enum:
+        - HUMIDSUBTROPICAL
+        - OCEANIC
+        - MEDITERRANIAN
+        - TUNDRA
+    Government:
+      type: string
+      enum:
+        - PUPPET_STATE
+        - THALASSOCRACY
+        - TELLUROCRACY
+    UserSignupRequest:
+      type: object
+      description: "Данные для регистрации нового пользователя"
+      properties:
+        password:
+          type: string
+          description: "Пароль пользователя"
+          example: "securePassword123!"
+        passwordRepeat:
+          type: string
+          description: "Повтор пароля для подтверждения"
+          example: "securePassword123!"
+        email:
+          type: string
+          format: email
+          description: "Электронная почта пользователя"
+          example: "aboba@mail.ru"
