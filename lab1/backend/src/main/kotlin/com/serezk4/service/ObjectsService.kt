@@ -2,6 +2,7 @@ package com.serezk4.service
 
 import com.serezk4.adapter.WebSocketAdapter
 import com.serezk4.api.model.CityDto
+import com.serezk4.api.model.Government
 import com.serezk4.config.security.util.user
 import com.serezk4.constants.CREATE
 import com.serezk4.constants.DELETE
@@ -63,6 +64,13 @@ class ObjectsService(
         return cityRepository.findAll(pageable).map { it.toDto() }
     }
 
+    fun getByName(name: String): CityDto {
+        val city = cityRepository.findAll().firstOrNull { it.name == name }
+            ?: throw ObjectNotFoundException()
+        accessService.checkAccess(city)
+        return city.toDto()
+    }
+
     @Cacheable("cities", key = "#id")
     fun getObjectById(id: Int): CityDto {
         return cityRepository.findById(id)
@@ -75,5 +83,21 @@ class ObjectsService(
         return (0..10)
             .map { generateCity() }
             .map { createObject(it.toDto()) }
+    }
+
+    @CacheEvict(value = ["cities"], allEntries = true)
+    fun deleteObjectsByTimezone(timezone: Int) {
+        cityRepository.findAllByTimezoneAndOwnerSub(timezone, user.sub)
+            .also { cityRepository.deleteAll(it) }
+            .forEach { websocketAdapter.broadcast(UpdateNotification(it, DELETE)) }
+    }
+
+    @CacheEvict(value = ["cities"], allEntries = true)
+    fun deleteOneByGovernment(governmentString: String) {
+        val government = Government.forValue(governmentString)
+        val city = cityRepository.findFirstByGovernmentAndOwnerSub(government, user.sub)
+            ?: throw ObjectNotFoundException()
+        cityRepository.delete(city)
+        websocketAdapter.broadcast(UpdateNotification(city, DELETE))
     }
 }

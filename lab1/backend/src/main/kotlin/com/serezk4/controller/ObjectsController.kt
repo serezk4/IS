@@ -27,10 +27,10 @@ class ObjectsController(
     @RateLimiter(name = "default", fallbackMethod = "fallback")
     override fun deleteObjectById(id: Int): ResponseEntity<Unit> {
         objectsService.deleteObjectById(id)
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
+        return ResponseEntity.noContent().build()
     }
 
-    //    @RateLimiter(name = "default", fallbackMethod = "fallback")
+    @RateLimiter(name = "default", fallbackMethod = "fallback")
     override fun getObjectById(id: Int): ResponseEntity<CityDto> {
         val city = objectsService.getObjectById(id)
         return ResponseEntity.ok(city)

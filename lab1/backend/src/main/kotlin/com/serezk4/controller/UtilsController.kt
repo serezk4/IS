@@ -15,12 +15,14 @@ class UtilsController(
 
     @RateLimiter(name = "default", fallbackMethod = "fallback")
     override fun deleteObjectsByTimezone(timezone: Int): ResponseEntity<Unit> {
-        return super.deleteObjectsByTimezone(timezone)
+        objectsService.deleteObjectsByTimezone(timezone)
+        return ResponseEntity.noContent().build()
     }
 
     @RateLimiter(name = "default", fallbackMethod = "fallback")
     override fun deleteOneByGovernment(government: String): ResponseEntity<Unit> {
-        return super.deleteOneByGovernment(government)
+        objectsService.deleteOneByGovernment(government)
+        return ResponseEntity.noContent().build()
     }
 
     @RateLimiter(name = "test", fallbackMethod = "fallback")
