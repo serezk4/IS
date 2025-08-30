@@ -26,9 +26,9 @@ class ObjectsController(
     }
 
     @RateLimiter(name = "default", fallbackMethod = "fallback")
-    override fun deleteObjectById(id: Int): ResponseEntity<DeleteObjectById200Response> {
+    override fun deleteObjectById(id: Int): ResponseEntity<Unit> {
         objectsService.deleteObjectById(id)
-        return ResponseEntity.ok(DeleteObjectById200Response(true))
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
     }
 
     @RateLimiter(name = "default", fallbackMethod = "fallback")

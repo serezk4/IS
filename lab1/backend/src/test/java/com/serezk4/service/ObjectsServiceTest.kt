@@ -1,5 +1,6 @@
 package com.serezk4.service
 
+import com.serezk4.adapter.RabbitmqAdapter
 import com.serezk4.api.model.CityDto
 import com.serezk4.api.model.Climate
 import com.serezk4.api.model.CoordinatesDto
@@ -22,10 +23,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.given
+import org.mockito.kotlin.verify
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -43,11 +46,13 @@ class ObjectsServiceTest {
     private val cityRepository: CityRepository = mock()
     private val accessService: AccessService = spy()
     private val timeService: TimeService = mock()
+    private val rabbitmqAdapter: RabbitmqAdapter = mock()
 
     private val underTest = ObjectsService(
         cityRepository,
         accessService,
-        timeService
+        timeService,
+        rabbitmqAdapter
     )
 
     @BeforeEach
@@ -60,6 +65,9 @@ class ObjectsServiceTest {
 
         `when`(cityRepository.findById(sampleCityId))
             .thenReturn(Optional.of(sampleCreatedCity))
+
+        `when`(rabbitmqAdapter.broadcast(any()))
+            .thenAnswer {}
 
         SecurityContextHolder.setContext(mockContext)
 
@@ -77,6 +85,7 @@ class ObjectsServiceTest {
         val result = underTest.createObject(sampleCityDto)
 
         // Then
+        verify(rabbitmqAdapter).broadcast(any())
         result.id shouldBe sampleCityId
         result.creationDate shouldBe sampleCreationDate
     }
@@ -92,6 +101,7 @@ class ObjectsServiceTest {
         }
 
         // Then
+        verify(rabbitmqAdapter, never()).broadcast(any())
         exception.errorCode shouldBe "validation_failed"
     }
 
@@ -105,6 +115,7 @@ class ObjectsServiceTest {
         underTest.deleteObjectById(sampleCityId)
 
         // Then
+        verify(rabbitmqAdapter).broadcast(any())
     }
 
     @Test
@@ -120,6 +131,7 @@ class ObjectsServiceTest {
         }
 
         // Then
+        verify(rabbitmqAdapter, never()).broadcast(any())
         exception.errorCode shouldBe "object_not_found"
     }
 
@@ -143,7 +155,7 @@ class ObjectsServiceTest {
         underTest.deleteObjectById(sampleCityId)
 
         // Then
-        // nothing thrown
+        verify(rabbitmqAdapter).broadcast(any())
     }
 
     @Test
@@ -163,6 +175,7 @@ class ObjectsServiceTest {
         }
 
         // Then
+        verify(rabbitmqAdapter, never()).broadcast(any())
         exception.errorCode shouldBe "object_not_owned"
     }
 
@@ -179,6 +192,7 @@ class ObjectsServiceTest {
         val result = underTest.patchObject(sampleCityId, updatedCityDto)
 
         // Then
+        verify(rabbitmqAdapter).broadcast(any())
         result.name shouldBe "Updated City Name"
     }
 
@@ -201,6 +215,7 @@ class ObjectsServiceTest {
         val result = underTest.patchObject(sampleCityId, updatedCityDto)
 
         // Then
+        verify(rabbitmqAdapter).broadcast(any())
         result.id shouldBe sampleCityId
         result.creationDate shouldBe sampleCreationDate
         result.name shouldBe "Updated City Name"
@@ -219,6 +234,7 @@ class ObjectsServiceTest {
         }
 
         // Then
+        verify(rabbitmqAdapter, never()).broadcast(any())
         exception.errorCode shouldBe "object_not_found"
     }
 
@@ -239,6 +255,7 @@ class ObjectsServiceTest {
         }
 
         // Then
+        verify(rabbitmqAdapter, never()).broadcast(any())
         exception.errorCode shouldBe "object_not_owned"
     }
 
@@ -252,6 +269,7 @@ class ObjectsServiceTest {
         val result = underTest.getObjects(samplePageable)
 
         // Then
+        verify(rabbitmqAdapter, never()).broadcast(any())
         result.totalElements shouldBe 1
         result.content.first().id shouldBe sampleCityId
         result.number shouldBe 0
@@ -265,6 +283,7 @@ class ObjectsServiceTest {
         val result = underTest.getObjectById(sampleCityId)
 
         // Then
+        verify(rabbitmqAdapter, never()).broadcast(any())
         result.id shouldBe sampleCityId
     }
 
@@ -281,6 +300,7 @@ class ObjectsServiceTest {
         }
 
         // Then
+        verify(rabbitmqAdapter, never()).broadcast(any())
         exception.errorCode shouldBe "object_not_found"
     }
 

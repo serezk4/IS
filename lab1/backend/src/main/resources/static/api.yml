@@ -9,10 +9,41 @@ security:
 tags:
   - name: Objects
     description: управление объектами
+  - name: Utils
+    description: вспомогательные методы управления объектами
+  - name: Search
+    description: методы поиска объектов
+  - name: Migrate
+    description: методы переселения населения между объектами
   - name: Users
     description: управление пользователями
 
 paths:
+  /api/v1/objects/test:
+    post:
+      summary: Добавить тестовые объекты
+      description: Добавляет 10 тестовых объектов в систему.
+      security:
+        - bearerAuth: [ ]
+      tags: [ Utils ]
+      operationId: createTestObjects
+      responses:
+        "200":
+          description: Тестовые объекты успешно созданы.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
   /api/v1/objects:
     post:
       summary: Добавить новый объект
@@ -189,16 +220,8 @@ paths:
             type: integer
             format: int32
       responses:
-        "200":
+        "204":
           description: Объект успешно удален.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
         "400":
           description: Клиентский запрос некорректен
           content:
@@ -240,6 +263,164 @@ paths:
                 $ref: "#/components/schemas/FormattedApiException"
         "500":
           description: Внутренняя ошибка сервера
+  /api/v1/objects/timezone/{timezone}:
+    delete:
+      tags: [ Utils ]
+      summary: Удалить все объекты по timezone
+      operationId: deleteObjectsByTimezone
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: timezone
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Значение поля timezone
+      responses:
+        '204':
+          description: Объекты успешно удалены
+        '400':
+          description: Некорректный параметр timezone
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormattedApiException'
+        '404':
+          description: Объекты с таким timezone не найдены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormattedApiException'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormattedApiException'
+
+  /api/v1/objects/government/{government}:
+    delete:
+      tags: [ Utils ]
+      summary: Удалить один объект по government
+      operationId: deleteOneByGovernment
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: government
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [ OLIGARCHY, MONARCHY, DEMOCRACY, PUPPET_GOVERNMENT ]
+      responses:
+        '204':
+          description: Один объект успешно удалён
+        '404':
+          description: Объект с таким government не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormattedApiException'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormattedApiException'
+
+  /api/v1/objects/search:
+    get:
+      tags: [ Search ]
+      summary: Поиск объектов по подстроке в имени
+      operationId: searchObjectsByName
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Подстрока для поиска в name
+      responses:
+        '200':
+          description: Найденные объекты
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormattedCityPage'
+        '404':
+          description: Объекты не найдены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormattedApiException'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormattedApiException'
+
+  /api/v1/objects/{fromId}/migrate/{toId}:
+    post:
+      tags: [ Migrate ]
+      summary: Переселить всё население из города id1 в город id2
+      operationId: migratePopulation
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: fromId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID города-источника
+        - name: toId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID города-назначения
+      responses:
+        '204':
+          description: Население успешно переселено
+        '404':
+          description: Один из городов не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormattedApiException'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormattedApiException'
+
+  /api/v1/objects/capital/migrate-half:
+    post:
+      tags: [ Migrate ]
+      summary: Переселить 50% жителей столицы в три города с наименьшим населением
+      operationId: migrateHalfFromCapital
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '204':
+          description: Население успешно переселено
+        '404':
+          description: Столица или города для переселения не найдены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormattedApiException'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormattedApiException'
 
 components:
   securitySchemes:

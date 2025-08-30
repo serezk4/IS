@@ -1,12 +1,18 @@
 package com.serezk4.service
 
+import com.serezk4.adapter.RabbitmqAdapter
 import com.serezk4.api.model.CityDto
 import com.serezk4.config.security.util.user
+import com.serezk4.constants.CREATE
+import com.serezk4.constants.DELETE
+import com.serezk4.constants.UPDATE
 import com.serezk4.exception.ObjectNotFoundException
 import com.serezk4.mapper.partialUpdate
 import com.serezk4.mapper.toDto
 import com.serezk4.mapper.toEntity
+import com.serezk4.model.UpdateNotification
 import com.serezk4.repository.CityRepository
+import com.serezk4.util.generateCity
 import com.serezk4.validator.validate
 import jakarta.transaction.Transactional
 import org.springframework.cache.annotation.CacheEvict
@@ -20,7 +26,8 @@ import org.springframework.stereotype.Service
 class ObjectsService(
     private val cityRepository: CityRepository,
     private val accessService: AccessService,
-    private val timeService: TimeService
+    private val timeService: TimeService,
+    private val rabbitmqAdapter: RabbitmqAdapter
 ) {
 
     @CacheEvict(value = ["cities"], allEntries = true)
@@ -28,15 +35,17 @@ class ObjectsService(
         return cityRepository.save(
             cityDto.also { it.validate() }.toEntity()
                 .copy(ownerSub = user.sub, creationDate = timeService.now())
-        ).toDto()
+        )
+            .also { rabbitmqAdapter.broadcast(UpdateNotification(it, CREATE)) }
+            .toDto()
     }
 
     @CacheEvict(value = ["cities"], allEntries = true)
     fun deleteObjectById(id: Int) {
         cityRepository.findById(id).orElseThrow { ObjectNotFoundException() }
             .also { accessService.checkAccess(it) }
-
-        cityRepository.deleteById(id)
+            .also { cityRepository.deleteById(id) }
+            .also { rabbitmqAdapter.broadcast(UpdateNotification(it, DELETE)) }
     }
 
     @CacheEvict(value = ["cities"], allEntries = true)
@@ -44,7 +53,9 @@ class ObjectsService(
         val city = cityRepository.findById(id).orElseThrow { ObjectNotFoundException() }
             .also { accessService.checkAccess(it) }
 
-        return cityRepository.save(city.partialUpdate(cityDto.also { it.validate() })).toDto()
+        return cityRepository.save(city.partialUpdate(cityDto.also { it.validate() }))
+            .also { rabbitmqAdapter.broadcast(UpdateNotification(it, UPDATE)) }
+            .toDto()
     }
 
     @Cacheable("cities")
@@ -57,5 +68,12 @@ class ObjectsService(
         return cityRepository.findById(id)
             .orElseThrow { ObjectNotFoundException() }
             .toDto()
+    }
+
+    @CacheEvict(value = ["cities"], allEntries = true)
+    fun createTestObject(): List<CityDto> {
+        return (0..10)
+            .map { generateCity() }
+            .map { createObject(it.toDto()) }
     }
 }

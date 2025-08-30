@@ -6,3 +6,8 @@ const val ACCOUNT = "account"
 // Role names
 const val ADMIN = "admin"
 const val USER = "user"
+
+// Object operations
+const val CREATE = "create"
+const val UPDATE = "update"
+const val DELETE = "delete"
