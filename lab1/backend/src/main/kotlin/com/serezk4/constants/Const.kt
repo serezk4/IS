@@ -11,3 +11,6 @@ const val USER = "user"
 const val CREATE = "create"
 const val UPDATE = "update"
 const val DELETE = "delete"
+
+// ws exchanges
+const val DEFAULT_EXCHANGE = ""

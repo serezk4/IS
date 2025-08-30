@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class RedisCacheAdapter(
-    @Qualifier("redisCacheManager")
+    @Qualifier("redisCacheManagerWithCacheTypes")
     private val redisCacheManager: CacheManager
 ) {
 

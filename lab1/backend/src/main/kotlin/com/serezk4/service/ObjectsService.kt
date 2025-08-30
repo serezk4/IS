@@ -1,6 +1,6 @@
 package com.serezk4.service
 
-import com.serezk4.adapter.RabbitmqAdapter
+import com.serezk4.adapter.WebSocketAdapter
 import com.serezk4.api.model.CityDto
 import com.serezk4.config.security.util.user
 import com.serezk4.constants.CREATE
@@ -27,7 +27,7 @@ class ObjectsService(
     private val cityRepository: CityRepository,
     private val accessService: AccessService,
     private val timeService: TimeService,
-    private val rabbitmqAdapter: RabbitmqAdapter
+    private val websocketAdapter: WebSocketAdapter
 ) {
 
     @CacheEvict(value = ["cities"], allEntries = true)
@@ -36,7 +36,7 @@ class ObjectsService(
             cityDto.also { it.validate() }.toEntity()
                 .copy(ownerSub = user.sub, creationDate = timeService.now())
         )
-            .also { rabbitmqAdapter.broadcast(UpdateNotification(it, CREATE)) }
+            .also { websocketAdapter.broadcast(UpdateNotification(it, CREATE)) }
             .toDto()
     }
 
@@ -45,7 +45,7 @@ class ObjectsService(
         cityRepository.findById(id).orElseThrow { ObjectNotFoundException() }
             .also { accessService.checkAccess(it) }
             .also { cityRepository.deleteById(id) }
-            .also { rabbitmqAdapter.broadcast(UpdateNotification(it, DELETE)) }
+            .also { websocketAdapter.broadcast(UpdateNotification(it, DELETE)) }
     }
 
     @CacheEvict(value = ["cities"], allEntries = true)
@@ -54,7 +54,7 @@ class ObjectsService(
             .also { accessService.checkAccess(it) }
 
         return cityRepository.save(city.partialUpdate(cityDto.also { it.validate() }))
-            .also { rabbitmqAdapter.broadcast(UpdateNotification(it, UPDATE)) }
+            .also { websocketAdapter.broadcast(UpdateNotification(it, UPDATE)) }
             .toDto()
     }
 

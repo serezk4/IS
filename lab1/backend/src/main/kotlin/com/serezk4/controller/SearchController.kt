@@ -1,7 +1,6 @@
 package com.serezk4.controller
 
 import com.serezk4.api.api.SearchApi
-import com.serezk4.api.model.CityDto
 import com.serezk4.api.model.FormattedCityPage
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import org.springframework.http.HttpStatus

@@ -2,7 +2,6 @@ package com.serezk4.controller
 
 import com.serezk4.api.api.ObjectsApi
 import com.serezk4.api.model.CityDto
-import com.serezk4.api.model.DeleteObjectById200Response
 import com.serezk4.api.model.FormattedCityPage
 import com.serezk4.mapper.toResponse
 import com.serezk4.service.ObjectsService
@@ -31,7 +30,7 @@ class ObjectsController(
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
     }
 
-    @RateLimiter(name = "default", fallbackMethod = "fallback")
+    //    @RateLimiter(name = "default", fallbackMethod = "fallback")
     override fun getObjectById(id: Int): ResponseEntity<CityDto> {
         val city = objectsService.getObjectById(id)
         return ResponseEntity.ok(city)
@@ -40,8 +39,8 @@ class ObjectsController(
     @RateLimiter(name = "default", fallbackMethod = "fallback")
     override fun getObjects(page: Int, size: Int, sort: List<String>?): ResponseEntity<FormattedCityPage> {
         val pageable = PageRequest.of(page, size, sort?.let { parseSort(it) } ?: Sort.unsorted())
-        val cities = objectsService.getObjects(pageable)
-        return ResponseEntity.ok().body(cities.toResponse())
+        val cities = objectsService.getObjects(pageable).toResponse()
+        return ResponseEntity.ok().body(cities)
     }
 
     @RateLimiter(name = "default", fallbackMethod = "fallback")

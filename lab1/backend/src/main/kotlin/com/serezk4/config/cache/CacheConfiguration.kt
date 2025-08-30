@@ -17,7 +17,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer
 class CacheConfiguration {
 
     @Bean
-    fun redisCacheManager(
+    fun redisCacheManagerWithCacheTypes(
         factory: RedisConnectionFactory,
         cacheConfigs: RedisCachesConfiguration
     ): RedisCacheManager {
@@ -37,6 +37,7 @@ class CacheConfiguration {
 
         return RedisCacheManager.builder(factory)
             .withInitialCacheConfigurations(initialCacheConfigurations)
+            .cacheDefaults(defaultConfig)
             .build()
     }
 }

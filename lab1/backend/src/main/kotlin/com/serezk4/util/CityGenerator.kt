@@ -12,27 +12,27 @@ fun generateCity(): City {
     return City(
         name = "TestCity${(1..100000).random()}",
         coordinates = generateCoordinates(),
-        area = (10..1000).random().toFloat(),
-        population = (10000..1000000).random().toLong(),
+        area = (1..1000).random().toFloat(),
+        population = (1..1_000_000).random().toLong(),
         establishmentDate = OffsetDateTime.now(),
         capital = false,
         metersAboveSeaLevel = (0..3000).random(),
-        timezone = (-12..14).random(),
-        climate = Climate.entries.toTypedArray().random(),
-        government = Government.entries.toTypedArray().random(),
+        timezone = (-13..15).random(),
+        climate = Climate.entries.random(),
+        government = Government.entries.random(),
         governor = generateHuman()
     )
 }
 
 fun generateCoordinates(): Coordinates {
     return Coordinates(
-        x = (1..1000).random(),
-        y = (1..1000).random().toFloat()
+        x = (0 until 373).random(),
+        y = (0 until 289).random().toFloat()
     )
 }
 
 fun generateHuman(): Human {
     return Human(
-        birthday = LocalDate.now().minusYears((1..100).random().toLong()),
+        birthday = LocalDate.now().minusYears((1..100).random().toLong())
     )
 }

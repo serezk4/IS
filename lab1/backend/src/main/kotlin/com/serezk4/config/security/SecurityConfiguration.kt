@@ -29,7 +29,8 @@ class SecurityConfiguration(
                 "/api.yml",
                 "/swagger-ui.html",
                 "/webjars/**",
-                "/api/v1/users/signup"
+                "/api/v1/users/signup",
+                "/ws/**", "/ws"
             )
                 .permitAll()
                 .anyRequest()

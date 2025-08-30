@@ -81,12 +81,12 @@ management:
 resilience4j.ratelimiter:
   instances:
     default:
-      limit-for-period: 10
+      limit-for-period: 100
       limit-refresh-period: 1s
       timeout-duration: 0
       event-consumer-buffer-size: 10
     test:
-        limit-for-period: 2
-        limit-refresh-period: 30s
-        timeout-duration: 0
-        event-consumer-buffer-size: 10
+      limit-for-period: 2
+      limit-refresh-period: 30s
+      timeout-duration: 0
+      event-consumer-buffer-size: 10

@@ -2,6 +2,7 @@ package com.serezk4.entity
 
 import com.serezk4.api.model.Climate
 import com.serezk4.api.model.Government
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -30,8 +31,8 @@ data class City(
     @Column(name = "name")
     var name: String,
 
-    @OneToOne
-    @JoinColumn(name = "coordinates_id")
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JoinColumn(name = "coordinates_id", nullable = false)
     val coordinates: Coordinates,
 
     @Column(name = "creation_date")
@@ -63,7 +64,7 @@ data class City(
     @Enumerated(EnumType.STRING)
     var government: Government,
 
-    @OneToOne
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JoinColumn(name = "governor_id")
     val governor: Human
 )
