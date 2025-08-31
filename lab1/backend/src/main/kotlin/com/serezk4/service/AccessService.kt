@@ -1,5 +1,6 @@
 package com.serezk4.service
 
+import com.serezk4.config.security.util.sub
 import com.serezk4.config.security.util.user
 import com.serezk4.constants.ACCOUNT
 import com.serezk4.constants.ADMIN
@@ -12,7 +13,7 @@ class AccessService {
 
     fun checkAccess(city: City) {
         require(
-            city.ownerSub == user.sub || user.resourceAccess[ACCOUNT]?.roles?.contains(ADMIN) == true
+            city.ownerSub == sub || user.resourceAccess[ACCOUNT]?.roles?.contains(ADMIN) == true
         ) { throw ObjectNotOwnedException() }
     }
 }

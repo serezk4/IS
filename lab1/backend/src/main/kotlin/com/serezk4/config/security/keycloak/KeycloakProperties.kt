@@ -14,5 +14,6 @@ data class KeycloakProperties(
     var adminPassword: String = "",
     var maxPooledPerRoute: Int = 50,
     var connectTimeout: Long = 3000L,
-    var readTimeout: Long = 5000L
+    var readTimeout: Long = 5000L,
+    var jwkSetUri: String = ""
 )

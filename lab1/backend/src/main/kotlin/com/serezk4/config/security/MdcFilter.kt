@@ -1,4 +1,4 @@
-package com.serezk4.config.security.mdc
+package com.serezk4.config.security
 
 import com.serezk4.config.security.util.userOpt
 import com.serezk4.enums.MdcKeys

@@ -1,9 +1,9 @@
 package com.serezk4.controller
 
 import com.serezk4.api.api.MigrateApi
+import com.serezk4.exception.TooManyRequestsException
 import com.serezk4.service.MigrateService
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
@@ -24,8 +24,5 @@ class MigrateController(
         return ResponseEntity.noContent().build()
     }
 
-    fun fallback(id: Int, ex: Throwable): ResponseEntity<String> {
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-            .body("Too many requests - please try again later.")
-    }
+    fun fallback(ex: Throwable): ResponseEntity<Any> = throw TooManyRequestsException()
 }

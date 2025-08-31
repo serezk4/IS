@@ -12,4 +12,5 @@ interface CityRepository : JpaRepository<City, Int> {
     fun findFirstByGovernmentAndOwnerSub(government: Government, ownerSub: String): City?
     fun findFirstByOrderByPopulationDesc(): City?
     fun findTop3ByOrderByPopulationAsc(): List<City>
+    fun findAllByName(name: String): List<City>
 }

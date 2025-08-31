@@ -1,11 +1,13 @@
 package com.serezk4.config.security
 
+import com.serezk4.config.security.keycloak.KeycloakProperties
 import com.serezk4.converter.CustomJwtAuthenticationConverter
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
@@ -14,8 +16,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 class SecurityConfiguration(
     private val customJwtAuthenticationConverter: CustomJwtAuthenticationConverter,
-    @Value("\${spring.security.oauth2.client.provider.keycloak.jwk-set-uri}")
-    private val jwkSetUri: String
+    private val keycloakProperties: KeycloakProperties
 ) {
 
     @Bean
@@ -45,7 +46,7 @@ class SecurityConfiguration(
             }
             .oauth2ResourceServer {
                 it.jwt { jwt ->
-                    jwt.jwkSetUri(jwkSetUri)
+                    jwt.jwkSetUri(keycloakProperties.jwkSetUri)
                     jwt.jwtAuthenticationConverter(customJwtAuthenticationConverter)
                 }
             }
@@ -63,4 +64,7 @@ class SecurityConfiguration(
             allowCredentials = true
         })
     }
+
+    @Bean
+    fun jwtDecoder(): JwtDecoder = NimbusJwtDecoder.withJwkSetUri(keycloakProperties.jwkSetUri).build()
 }

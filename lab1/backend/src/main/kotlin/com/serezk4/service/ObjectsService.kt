@@ -3,10 +3,11 @@ package com.serezk4.service
 import com.serezk4.adapter.WebSocketAdapter
 import com.serezk4.api.model.CityDto
 import com.serezk4.api.model.Government
-import com.serezk4.config.security.util.user
+import com.serezk4.config.security.util.sub
 import com.serezk4.constants.CREATE
 import com.serezk4.constants.DELETE
 import com.serezk4.constants.UPDATE
+import com.serezk4.exception.InvalidRequestException
 import com.serezk4.exception.ObjectNotFoundException
 import com.serezk4.mapper.partialUpdate
 import com.serezk4.mapper.toDto
@@ -35,7 +36,7 @@ class ObjectsService(
     fun createObject(cityDto: CityDto): CityDto {
         return cityRepository.save(
             cityDto.also { it.validate() }.toEntity()
-                .copy(ownerSub = user.sub, creationDate = timeService.now())
+                .copy(ownerSub = sub, creationDate = timeService.now())
         )
             .also { websocketAdapter.broadcast(UpdateNotification(it, CREATE)) }
             .toDto()
@@ -64,11 +65,11 @@ class ObjectsService(
         return cityRepository.findAll(pageable).map { it.toDto() }
     }
 
-    fun getByName(name: String): CityDto {
-        val city = cityRepository.findAll().firstOrNull { it.name == name }
-            ?: throw ObjectNotFoundException()
-        accessService.checkAccess(city)
-        return city.toDto()
+    @Cacheable("cities", key = "#name")
+    fun findByName(name: String): List<CityDto> {
+        if (name.isBlank()) throw InvalidRequestException("name", "не должно быть пустым")
+        val cities = cityRepository.findAllByName(name)
+        return cities.map { it.toDto() }
     }
 
     @Cacheable("cities", key = "#id")
@@ -87,7 +88,7 @@ class ObjectsService(
 
     @CacheEvict(value = ["cities"], allEntries = true)
     fun deleteObjectsByTimezone(timezone: Int) {
-        cityRepository.findAllByTimezoneAndOwnerSub(timezone, user.sub)
+        cityRepository.findAllByTimezoneAndOwnerSub(timezone, sub)
             .also { cityRepository.deleteAll(it) }
             .forEach { websocketAdapter.broadcast(UpdateNotification(it, DELETE)) }
     }
@@ -95,7 +96,7 @@ class ObjectsService(
     @CacheEvict(value = ["cities"], allEntries = true)
     fun deleteOneByGovernment(governmentString: String) {
         val government = Government.forValue(governmentString)
-        val city = cityRepository.findFirstByGovernmentAndOwnerSub(government, user.sub)
+        val city = cityRepository.findFirstByGovernmentAndOwnerSub(government, sub)
             ?: throw ObjectNotFoundException()
         cityRepository.delete(city)
         websocketAdapter.broadcast(UpdateNotification(city, DELETE))

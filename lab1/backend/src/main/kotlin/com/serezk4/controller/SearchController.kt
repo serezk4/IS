@@ -1,10 +1,10 @@
 package com.serezk4.controller
 
 import com.serezk4.api.api.SearchApi
-import com.serezk4.api.model.FormattedCityPage
+import com.serezk4.api.model.CityDto
+import com.serezk4.exception.TooManyRequestsException
 import com.serezk4.service.ObjectsService
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
@@ -14,13 +14,9 @@ class SearchController(
 ) : SearchApi {
 
     @RateLimiter(name = "default", fallbackMethod = "fallback")
-    override fun searchObjectsByName(name: String): ResponseEntity<FormattedCityPage> {
-//        val cities = objectsService.searchObjectsByName(name).toResponse()
-        return ResponseEntity.ok().body(/*cities*/null)
+    override fun searchObjectsByName(name: String): ResponseEntity<List<CityDto>> {
+        return ResponseEntity.ok().body(objectsService.findByName(name))
     }
 
-    fun fallback(id: Int, ex: Throwable): ResponseEntity<String> {
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-            .body("Too many requests - please try again later.")
-    }
+    fun fallback(ex: Throwable): ResponseEntity<Any> = throw TooManyRequestsException()
 }

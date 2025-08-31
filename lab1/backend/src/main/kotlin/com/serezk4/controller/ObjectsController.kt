@@ -3,6 +3,7 @@ package com.serezk4.controller
 import com.serezk4.api.api.ObjectsApi
 import com.serezk4.api.model.CityDto
 import com.serezk4.api.model.FormattedCityPage
+import com.serezk4.exception.TooManyRequestsException
 import com.serezk4.mapper.toResponse
 import com.serezk4.service.ObjectsService
 import com.serezk4.util.parseSort
@@ -49,8 +50,5 @@ class ObjectsController(
         return ResponseEntity.ok(updatedCity)
     }
 
-    fun fallback(id: Int, ex: Throwable): ResponseEntity<String> {
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-            .body("Too many requests - please try again later.")
-    }
+    fun fallback(ex: Throwable): ResponseEntity<Any> = throw TooManyRequestsException()
 }

@@ -349,7 +349,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FormattedCityPage'
+                type: array
+                items:
+                  $ref: '#/components/schemas/CityDto'
         '404':
           description: Объекты не найдены
           content:

@@ -1,6 +1,8 @@
 package com.serezk4.service
 
+import com.serezk4.adapter.WebSocketAdapter
 import com.serezk4.exception.ObjectNotFoundException
+import com.serezk4.model.UpdateNotification
 import com.serezk4.repository.CityRepository
 import jakarta.transaction.Transactional
 import org.springframework.cache.annotation.CacheEvict
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service
 class MigrateService(
     private val cityRepository: CityRepository,
     private val accessService: AccessService,
+    private val websSocketAdapter: WebSocketAdapter
 ) {
 
     @CacheEvict(value = ["cities"], allEntries = true)
@@ -27,6 +30,9 @@ class MigrateService(
         val updatedTo = cityTo.copy(population = cityFrom.population + cityTo.population)
 
         cityRepository.saveAll(listOf(updatedFrom, updatedTo))
+
+        websSocketAdapter.broadcast(UpdateNotification(cityTo, "UPDATE"))
+        websSocketAdapter.broadcast(UpdateNotification(cityFrom, "UPDATE"))
     }
 
     @CacheEvict(value = ["cities"], allEntries = true)
@@ -42,8 +48,8 @@ class MigrateService(
         val populationPerCity = halfPopulation / smallestCities.size
 
         cityRepository.saveAll(
-            listOf(capital.copy(population = capital.population - halfPopulation)) +
-                    smallestCities.map { it.copy(population = it.population + populationPerCity) }
-        )
+            listOf(capital.copy(population = capital.population - halfPopulation))
+                    + smallestCities.map { it.copy(population = it.population + populationPerCity) }
+        ).onEach { websSocketAdapter.broadcast(UpdateNotification(it, "UPDATE")) }
     }
 }
