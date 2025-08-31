@@ -18,7 +18,8 @@ class UserSignupService(
         val userRepresentation = UserRepresentation().apply {
             email = request.email
             isEnabled = true
-            requiredActions = listOf("VERIFY_EMAIL")
+            isEmailVerified = true
+//            requiredActions = listOf("VERIFY_EMAIL")
         }
 
         val response = users.create(userRepresentation)

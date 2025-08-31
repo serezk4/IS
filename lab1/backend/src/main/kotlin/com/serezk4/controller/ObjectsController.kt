@@ -37,10 +37,10 @@ class ObjectsController(
         return ResponseEntity.ok(city)
     }
 
-    @RateLimiter(name = "default", fallbackMethod = "fallback")
-    override fun getObjects(page: Int, size: Int, sort: List<String>?): ResponseEntity<FormattedCityPage> {
-        val pageable = PageRequest.of(page, size, sort?.let { parseSort(it) } ?: Sort.unsorted())
-        val cities = objectsService.getObjects(pageable).toResponse()
+//    @RateLimiter(name = "default", fallbackMethod = "fallback")
+    override fun getObjects(page: Int, size: Int, sort: String): ResponseEntity<FormattedCityPage> {
+        val pageable = PageRequest.of(page, size, parseSort(sort))
+        val cities = objectsService.getObjects(pageable)
         return ResponseEntity.ok().body(cities)
     }
 

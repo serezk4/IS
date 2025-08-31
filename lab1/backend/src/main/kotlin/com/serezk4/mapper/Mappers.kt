@@ -2,11 +2,18 @@ package com.serezk4.mapper
 
 import com.serezk4.api.model.CityDto
 import com.serezk4.api.model.CoordinatesDto
+import com.serezk4.api.model.CustomUserDetailsDto
 import com.serezk4.api.model.FormattedCityPage
 import com.serezk4.api.model.HumanDto
+import com.serezk4.api.model.RealmAccessDto
+import com.serezk4.api.model.ResourceRolesDto
 import com.serezk4.entity.City
 import com.serezk4.entity.Coordinates
 import com.serezk4.entity.Human
+import com.serezk4.model.CustomUserDetails
+import com.serezk4.model.RealmAccess
+import com.serezk4.model.ResourceRoles
+import com.serezk4.util.toOffsetDateTime
 import org.springframework.data.domain.Page
 
 fun CityDto.toEntity() = City(
@@ -83,4 +90,33 @@ fun Page<CityDto>.toResponse() = FormattedCityPage(
     totalElements = this.totalElements.toInt(),
     totalPages = this.totalPages,
     last = this.isLast
+)
+
+fun CustomUserDetails.toDto() = CustomUserDetailsDto(
+    sub = this.sub,
+    emailVerified = this.emailVerified,
+    allowedOrigins = this.allowedOrigins.toMutableList(),
+    realmAccess = this.realmAccess.toDto(),
+    resourceAccess = this.resourceAccess.mapValues { it.value.toDto() }.toMutableMap(),
+    iss = this.issuer,
+    preferredUsername = this.preferredUsername,
+    givenName = this.givenName ?: "unknown",
+    familyName = this.familyName,
+    sid = this.sid,
+    acr = this.acr,
+    scope = this.scope,
+    name = this.name ?: "unknown",
+    email = this.email,
+    exp = this.exp.toOffsetDateTime(),
+    iat = this.iat.toOffsetDateTime(),
+    jti = this.jti,
+    azp = this.azp
+)
+
+fun RealmAccess.toDto() = RealmAccessDto(
+    roles = this.roles.toMutableList()
+)
+
+fun ResourceRoles.toDto() = ResourceRolesDto(
+    roles = this.roles.toMutableList()
 )

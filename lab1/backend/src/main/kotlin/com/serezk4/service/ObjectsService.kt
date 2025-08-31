@@ -2,6 +2,7 @@ package com.serezk4.service
 
 import com.serezk4.adapter.WebSocketAdapter
 import com.serezk4.api.model.CityDto
+import com.serezk4.api.model.FormattedCityPage
 import com.serezk4.api.model.Government
 import com.serezk4.config.security.util.sub
 import com.serezk4.constants.CREATE
@@ -12,6 +13,7 @@ import com.serezk4.exception.ObjectNotFoundException
 import com.serezk4.mapper.partialUpdate
 import com.serezk4.mapper.toDto
 import com.serezk4.mapper.toEntity
+import com.serezk4.mapper.toResponse
 import com.serezk4.model.UpdateNotification
 import com.serezk4.repository.CityRepository
 import com.serezk4.util.generateCity
@@ -20,6 +22,7 @@ import jakarta.transaction.Transactional
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
@@ -60,9 +63,14 @@ class ObjectsService(
             .toDto()
     }
 
-    @Cacheable("cities")
-    fun getObjects(pageable: Pageable): Page<CityDto> {
-        return cityRepository.findAll(pageable).map { it.toDto() }
+    @Cacheable(
+        value = ["cities"],
+        key = "{#pageable.pageNumber, #pageable.pageSize, #pageable.sort.toString()}"
+    )
+    fun getObjects(pageable: Pageable): FormattedCityPage {
+        return cityRepository.findAll(pageable)
+            .map { it.toDto() }
+            .toResponse()
     }
 
     @Cacheable("cities", key = "#name")

@@ -1,5 +1,6 @@
 package com.serezk4.config.cache
 
+import com.serezk4.api.model.FormattedCityPage
 import com.serezk4.config.jackson.redisJsonObjectMapper
 import com.serezk4.config.redis.RedisCachesConfiguration
 import org.springframework.cache.annotation.EnableCaching
@@ -31,9 +32,18 @@ class CacheConfiguration {
                     Jackson2JsonRedisSerializer(mapper, Any::class.java)
                 )
             )
+            .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(StringRedisSerializer()))
+
+        val citiesConfig = defaultConfig.serializeValuesWith(
+            RedisSerializationContext.SerializationPair.fromSerializer(
+                Jackson2JsonRedisSerializer(mapper, FormattedCityPage::class.java)
+            )
+        )
 
         val initialCacheConfigurations: Map<String, RedisCacheConfiguration> =
-            cacheConfigs.redisCacheTypesConfigs(defaultConfig, mapper)
+            mapOf(
+                "cities" to citiesConfig
+            ) + cacheConfigs.redisCacheTypesConfigs(defaultConfig, mapper)
 
         return RedisCacheManager.builder(factory)
             .withInitialCacheConfigurations(initialCacheConfigurations)

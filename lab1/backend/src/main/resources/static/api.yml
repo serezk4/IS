@@ -105,9 +105,8 @@ paths:
           description: Сортировка в формате поле,asc|desc. Можно указать несколько.
           required: false
           schema:
-            type: array
-            items:
-              type: string
+            type: string
+            default: id,asc
       responses:
         "200":
           description: Список объектов успешно получен.
@@ -423,6 +422,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FormattedApiException'
+  /api/v1/users/me:
+    get:
+      tags: [ Users ]
+      summary: Получить информацию о текущем пользователе
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Информация о текущем пользователе
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomUserDetailsDto"
+        "401":
+          description: Пользователь не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
 
 components:
   securitySchemes:
@@ -433,6 +458,89 @@ components:
       description: "JWT для авторизации запросов"
 
   schemas:
+    CustomUserDetailsDto:
+      type: object
+      properties:
+        sub:
+          type: string
+        email_verified:
+          type: boolean
+        allowed-origins:
+          type: array
+          items:
+            type: string
+        realm_access:
+          $ref: '#/components/schemas/RealmAccessDto'
+        resource_access:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ResourceRolesDto'
+        iss:
+          type: string
+        preferred_username:
+          type: string
+        given_name:
+          type: string
+        family_name:
+          type: string
+          nullable: true
+        sid:
+          type: string
+        acr:
+          type: string
+        azp:
+          type: string
+        scope:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        exp:
+          type: string
+          format: date-time
+        iat:
+          type: string
+          format: date-time
+        jti:
+          type: string
+      required:
+        - sub
+        - email_verified
+        - allowed-origins
+        - realm_access
+        - resource_access
+        - iss
+        - preferred_username
+        - given_name
+        - sid
+        - acr
+        - azp
+        - scope
+        - name
+        - email
+        - exp
+        - iat
+        - jti
+    RealmAccessDto:
+      type: object
+      properties:
+        roles:
+          type: array
+          items:
+            type: string
+      required:
+        - roles
+    ResourceRolesDto:
+      type: object
+      properties:
+        roles:
+          type: array
+          items:
+            type: string
+      required:
+        - roles
     FormattedApiException:
       type: object
       description: "Ошибки API (в т.ч. 500)"
