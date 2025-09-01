@@ -7,6 +7,7 @@ import com.serezk4.api.model.FormattedCityPage
 import com.serezk4.api.model.HumanDto
 import com.serezk4.api.model.RealmAccessDto
 import com.serezk4.api.model.ResourceRolesDto
+import com.serezk4.config.security.util.userOpt
 import com.serezk4.entity.City
 import com.serezk4.entity.Coordinates
 import com.serezk4.entity.Human
@@ -42,13 +43,16 @@ fun HumanDto.toEntity() = Human(
 fun City.toDto() = CityDto(
     id = this.id,
     name = this.name,
+    ownerName = this.ownerName,
     coordinates = this.coordinates.toDto(),
+    isYours = this.ownerSub == userOpt?.sub,
     creationDate = this.creationDate,
     area = this.area,
     population = this.population,
     establishmentDate = this.establishmentDate,
     capital = this.capital,
     metersAboveSeaLevel = this.metersAboveSeaLevel,
+    ownerSub = this.ownerSub,
     timezone = this.timezone,
     climate = this.climate,
     government = this.government,

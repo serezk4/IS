@@ -5,6 +5,7 @@ import com.serezk4.api.model.CityDto
 import com.serezk4.api.model.FormattedCityPage
 import com.serezk4.api.model.Government
 import com.serezk4.config.security.util.sub
+import com.serezk4.config.security.util.user
 import com.serezk4.constants.CREATE
 import com.serezk4.constants.DELETE
 import com.serezk4.constants.UPDATE
@@ -21,8 +22,6 @@ import com.serezk4.validator.validate
 import jakarta.transaction.Transactional
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
@@ -39,7 +38,11 @@ class ObjectsService(
     fun createObject(cityDto: CityDto): CityDto {
         return cityRepository.save(
             cityDto.also { it.validate() }.toEntity()
-                .copy(ownerSub = sub, creationDate = timeService.now())
+                .copy(
+                    ownerSub = sub,
+                    creationDate = timeService.now(),
+                    ownerName = user.email
+                )
         )
             .also { websocketAdapter.broadcast(UpdateNotification(it, CREATE)) }
             .toDto()

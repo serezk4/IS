@@ -19,6 +19,7 @@ class UserSignupService(
             email = request.email
             isEnabled = true
             isEmailVerified = true
+            realmRoles = listOf("user")
 //            requiredActions = listOf("VERIFY_EMAIL")
         }
 

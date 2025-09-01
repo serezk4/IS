@@ -600,11 +600,20 @@ components:
           format: int32
         name:
           type: string
+        ownerName:
+          type: string
+          description: "Имя пользователя-владельца объекта"
+        ownerSub:
+          type: string
+          description: "Идентификатор пользователя-владельца объекта"
         coordinates:
           $ref: '#/components/schemas/CoordinatesDto'
         creationDate:
           type: string
           format: date
+        isYours:
+          type: boolean
+          description: "Флаг, указывающий, принадлежит ли объект текущему пользователю"
         area:
           type: number
           format: float

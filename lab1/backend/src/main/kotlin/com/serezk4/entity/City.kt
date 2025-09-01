@@ -28,6 +28,9 @@ data class City(
     @Column(name = "owner_sub")
     var ownerSub: String? = null,
 
+    @Column(name = "owner_name")
+    var ownerName: String? = null,
+
     @Column(name = "name")
     var name: String,
 

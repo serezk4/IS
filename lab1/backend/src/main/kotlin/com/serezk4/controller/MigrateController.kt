@@ -12,17 +12,15 @@ class MigrateController(
     private val migrateService: MigrateService
 ) : MigrateApi {
 
-    @RateLimiter(name = "default", fallbackMethod = "fallback")
+    @RateLimiter(name = "default")
     override fun migrateHalfFromCapital(): ResponseEntity<Unit> {
         migrateService.migrateHalfFromCapital()
         return ResponseEntity.noContent().build()
     }
 
-    @RateLimiter(name = "default", fallbackMethod = "fallback")
+    @RateLimiter(name = "default")
     override fun migratePopulation(fromId: Int, toId: Int): ResponseEntity<Unit> {
         migrateService.migratePopulation(fromId = fromId, toId = toId)
         return ResponseEntity.noContent().build()
     }
-
-    fun fallback(ex: Throwable): ResponseEntity<Any> = throw TooManyRequestsException()
 }
