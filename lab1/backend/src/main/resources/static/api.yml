@@ -13,8 +13,6 @@ tags:
     description: вспомогательные методы управления объектами
   - name: Search
     description: методы поиска объектов
-  - name: Migrate
-    description: методы переселения населения между объектами
   - name: Users
     description: управление пользователями
 
@@ -683,3 +681,9 @@ components:
           format: email
           description: "Электронная почта пользователя"
           example: "aboba@mail.ru"
+    BookCreatureType:
+      type: string
+      enum:
+        - HOBBIT
+        - ELF
+        - HUMAN
