@@ -9,8 +9,13 @@ export const apiRoutes = {
     },
     objects: {
         fetch: `${process.env.NEXT_PUBLIC_API_BASE_URL}/objects`,
+        test: `${process.env.NEXT_PUBLIC_API_BASE_URL}/objects/test`,
         create: `${process.env.NEXT_PUBLIC_API_BASE_URL}/objects`,
         update: `${process.env.NEXT_PUBLIC_API_BASE_URL}/objects`,
+        migrate_base: `${process.env.NEXT_PUBLIC_API_BASE_URL}/objects`,
+        migrate_half: `${process.env.NEXT_PUBLIC_API_BASE_URL}/objects/capital/migrate-half`,
+        by_goverment: `${process.env.NEXT_PUBLIC_API_BASE_URL}/objects/government`,
+        by_timezone: `${process.env.NEXT_PUBLIC_API_BASE_URL}/objects/timezone`,
     },
     ws: {
         base: process.env.NEXT_PUBLIC_WS_BASE_URL,

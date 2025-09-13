@@ -20,7 +20,6 @@ class UserSignupService(
             isEnabled = true
             isEmailVerified = true
             realmRoles = listOf("user")
-//            requiredActions = listOf("VERIFY_EMAIL")
         }
 
         val response = users.create(userRepresentation)
@@ -41,7 +40,7 @@ class UserSignupService(
                     isTemporary = false
                 }
             )
-            executeActionsEmail(listOf("VERIFY_EMAIL"))
+//            executeActionsEmail(listOf("VERIFY_EMAIL"))
             toRepresentation()
         }
     }

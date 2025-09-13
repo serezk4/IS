@@ -18,4 +18,3 @@ fun redisJsonObjectMapper(): ObjectMapper = JsonMapper.builder()
     .visibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY)
     .build()
     .apply { findAndRegisterModules() }
-

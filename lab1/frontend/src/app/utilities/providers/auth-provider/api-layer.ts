@@ -14,6 +14,11 @@ type TokenEndpointResponse = {
     access_expires_in?: number;
 };
 
+export type FormattedApiException = {
+    errorCode?: string;
+    message?: string;
+};
+
 export interface City {
     id: number;
     ownerName: string;
@@ -70,6 +75,153 @@ export const updateCity = async (
         .then((r) => r)
         .catch(() => undefined);
 
+export async function migratePopulationHalf(fromId: number, toId: number, token?: string, opts?: {
+    signal?: AbortSignal
+}) {
+    try {
+        await ax.post(
+            `${apiRoutes.objects.migrate_half}`,
+            undefined,
+            {headers: token ? {Authorization: `Bearer ${token}`} : undefined, signal: opts?.signal}
+        );
+        return {ok: true as const};
+    } catch (e: any) {
+        const data = e?.response?.data as FormattedApiException | undefined;
+        return {ok: false as const, status: e?.response?.status, ...data};
+    }
+}
+
+export async function migratePopulation(fromId: number, toId: number, token?: string, opts?: { signal?: AbortSignal }) {
+    try {
+        await ax.post(
+            `${apiRoutes.objects.migrate_base}/${fromId}/migrate/${toId}`,
+            undefined,
+            {headers: token ? {Authorization: `Bearer ${token}`} : undefined, signal: opts?.signal}
+        );
+        return {ok: true as const};
+    } catch (e: any) {
+        const data = e?.response?.data as FormattedApiException | undefined;
+        return {ok: false as const, status: e?.response?.status, ...data};
+    }
+}
+
+export async function searchCitiesByName(
+    name: string,
+    token?: string,
+    opts?: { signal?: AbortSignal }
+): Promise<City[]> {
+    try {
+        const r = await ax.get<City[]>(
+            `/api/v1/objects/search`,
+            {
+                params: {name},
+                headers: token ? {Authorization: `Bearer ${token}`} : undefined,
+                signal: opts?.signal
+            }
+        );
+        return r.data || [];
+    } catch (e: any) {
+        if (e?.response?.status === 404) return [];
+        throw e;
+    }
+}
+
+export async function migrateHalfFromCapital(
+    token?: string,
+    opts?: { signal?: AbortSignal }
+) {
+    const res = await ax.post(
+        apiRoutes.objects.migrate_half,
+        null,
+        {
+            headers: token ? {Authorization: `Bearer ${token}`} : undefined,
+            signal: opts?.signal,
+            validateStatus: () => true,
+        }
+    );
+
+    if (res.status >= 200 && res.status < 300) {
+        return "Население переселено";
+    }
+
+    const data = res.data as FormattedApiException | undefined;
+    return data?.message ?? `Ошибка ${res.status}`;
+}
+
+export async function createTestObjects(
+    token?: string,
+    opts?: { signal?: AbortSignal }
+) {
+    const res = await ax.post(
+        `${apiRoutes.objects.test}`,
+        null,
+        {
+            headers: token ? {Authorization: `Bearer ${token}`} : undefined,
+            signal: opts?.signal,
+            validateStatus: () => true,
+        }
+    );
+
+    if (res.status >= 200 && res.status < 300) {
+        return "Тестовые объекты созданы";
+    }
+
+    const data = res.data as FormattedApiException | undefined;
+    return data?.message ?? `Ошибка ${res.status}`;
+}
+
+export const deleteAllByTimezone = async (
+    timezone: number,
+    token?: string,
+    opts?: { signal?: AbortSignal }
+): Promise<{ ok: boolean; status?: number; errorCode?: string; message?: string } | undefined> => {
+    try {
+        const res = await ax.delete(
+            `${apiRoutes.objects.by_timezone}/${timezone}`,
+            {
+                headers: token ? {Authorization: `Bearer ${token}`} : undefined,
+                signal: opts?.signal,
+                validateStatus: () => true,
+            }
+        );
+
+        if (res.status >= 200 && res.status < 300) {
+            return {ok: true};
+        }
+
+        const data = res.data as FormattedApiException | undefined;
+        return {ok: false, status: res.status, ...data};
+    } catch {
+        return undefined;
+    }
+}
+
+export const deleteOneByGovernment = async (
+    government: string,
+    token?: string,
+    opts?: { signal?: AbortSignal }
+): Promise<{ ok: boolean; status?: number; errorCode?: string; message?: string } | undefined> => {
+    try {
+        const res = await ax.delete(
+            `${apiRoutes.objects.by_goverment}/${government}`,
+            {
+                headers: token ? {Authorization: `Bearer ${token}`} : undefined,
+                signal: opts?.signal,
+                validateStatus: () => true,
+            }
+        );
+
+        if (res.status >= 200 && res.status < 300) {
+            return {ok: true};
+        }
+
+        const data = res.data as FormattedApiException | undefined;
+        return {ok: false, status: res.status, ...data};
+    } catch {
+        return undefined;
+    }
+}
+
 export const fetchUser = async (
     token?: string,
     opts?: { signal?: AbortSignal }
@@ -101,6 +253,21 @@ export const getCities = async (
         })
         .then((r) => r.data)
         .catch(() => undefined);
+
+export const getCity = async (
+    token?: string,
+    id?: number,
+    opts?: { signal?: AbortSignal }
+): Promise<City | undefined> => {
+    if (id == null) return undefined;
+    return ax
+        .get<City>(`${apiRoutes.objects.fetch}/${id}`, {
+            headers: token ? {Authorization: `Bearer ${token}`} : undefined,
+            signal: opts?.signal,
+        })
+        .then((r) => r.data)
+        .catch(() => undefined);
+}
 
 export const createCity = async (
     token: string | undefined,

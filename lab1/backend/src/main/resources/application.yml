@@ -91,7 +91,7 @@ resilience4j.ratelimiter:
       timeout-duration: 0
       event-consumer-buffer-size: 10
     signup:
-        limit-for-period: 5
-        limit-refresh-period: 1s
+        limit-for-period: 3
+        limit-refresh-period: 1m
         timeout-duration: 0
         event-consumer-buffer-size: 10

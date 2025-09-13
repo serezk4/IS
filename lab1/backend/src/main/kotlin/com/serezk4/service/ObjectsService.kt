@@ -83,7 +83,6 @@ class ObjectsService(
         return cities.map { it.toDto() }
     }
 
-    @Cacheable("cities", key = "#id")
     fun getObjectById(id: Int): CityDto {
         return cityRepository.findById(id)
             .orElseThrow { ObjectNotFoundException() }

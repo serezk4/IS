@@ -790,8 +790,8 @@ const Table: React.FC<TableProps> = ({fullWidth: fullWidthProp, smartColumns: sm
                                                         variant="ghost"
                                                         size="icon"
                                                         className="h-8 w-8"
-                                                        disabled={(!(row.isYours || row.ownerSub == user?.sub || user?.roles?.includes("admin")))}
-                                                        onClick={() => (row.isYours || row.ownerSub == user?.sub || user?.roles?.includes("admin")) && setEditTarget(row)}
+                                                        disabled={(!(row.ownerSub == user?.sub || user?.realm_access?.roles?.includes("admin")))}
+                                                        onClick={() => (row.ownerSub == user?.sub || user?.realm_access?.roles?.includes("admin")) && setEditTarget(row)}
                                                         aria-label="Изменить"
                                                     >
                                                         <Pencil className="h-4 w-4"/>

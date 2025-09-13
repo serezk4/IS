@@ -2,7 +2,6 @@ package com.serezk4.service
 
 import com.serezk4.config.security.util.sub
 import com.serezk4.config.security.util.user
-import com.serezk4.constants.ACCOUNT
 import com.serezk4.constants.ADMIN
 import com.serezk4.entity.City
 import com.serezk4.exception.ObjectNotOwnedException
@@ -13,7 +12,7 @@ class AccessService {
 
     fun checkAccess(city: City) {
         require(
-            city.ownerSub == sub || user.resourceAccess[ACCOUNT]?.roles?.contains(ADMIN) == true
+            city.ownerSub == sub || user.realmAccess.roles.contains(ADMIN)
         ) { throw ObjectNotOwnedException() }
     }
 }
