@@ -19,7 +19,7 @@ services:
     volumes:
       - ~/volumes/postgres-data:/var/lib/postgresql/data
     ports:
-      - "1232:5432"
+      - "0.0.0.0:1232:5432"
     environment:
       POSTGRES_USER: backend
       POSTGRES_PASSWORD: backend
@@ -45,7 +45,7 @@ services:
     volumes:
       - ~/volumes/elasticsearch-data:/usr/share/elasticsearch/data
     ports:
-      - "9200:9200"
+      - "0.0.0.0:9200:9200"
     healthcheck:
       test: [ "CMD-SHELL", "curl -s -u elastic:changeme_elastic http://localhost:9200 >/dev/null" ]
       interval: 10s
@@ -59,7 +59,7 @@ services:
     container_name: logstash
     restart: unless-stopped
     ports:
-      - "5044:5044"
+      - "0.0.0.0:5044:5044"
     volumes:
       - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
 
@@ -73,7 +73,7 @@ services:
     command: [ "-e", "-strict.perms=false" ]
     volumes:
       - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - /var/log/is/:/var/log/is/:ro
+      - ~/volumes/backend-logs:/var/log/is:ro
       - ~/volumes/filebeat-data:/usr/share/filebeat/data
 
   kibana:
@@ -83,7 +83,7 @@ services:
       elasticsearch:
         condition: service_healthy
     ports:
-      - "5601:5601"
+      - "0.0.0.0:5601:5601"
     environment:
       ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
       ELASTICSEARCH_SERVICEACCOUNTTOKEN: "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYTo2dmR0UmZ1V1M4cVRucFpyNXkwVkh3"
@@ -100,6 +100,8 @@ services:
   backend:
     image: cr.yandex/crpa0c9avqe31tmi0mfu/is-lab1:latest
     container_name: backend
+    volumes:
+      - ~/volumes/backend-logs:/var/log/is
     build:
       context: .
       args:

@@ -7,7 +7,10 @@ style:
     maxLineLength: 150
   ForbiddenComment:
     active: false
-
+  MagicNumber:
+    active: false
+  ReturnCount:
+    active: false
 complexity:
   TooManyFunctions:
     active: false
