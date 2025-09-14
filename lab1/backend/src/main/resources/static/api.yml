@@ -11,23 +11,217 @@ tags:
     description: управление объектами
   - name: Utils
     description: вспомогательные методы управления объектами
-  - name: Search
-    description: методы поиска объектов
   - name: Users
     description: управление пользователями
 
 paths:
+  /api/v1/utils/delete/by-attack-level/{attackLevel}:
+    delete:
+      summary: Удалить объект по attackLevel
+      description: Удаляет один объект с указанным значением attackLevel.
+      security:
+        - bearerAuth: [ ]
+      tags: [ Utils ]
+      operationId: deleteByAttackLevel
+      parameters:
+        - name: attackLevel
+          in: path
+          description: Значение attackLevel
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "204":
+          description: Объект удалён
+        "401":
+          description: Требуется авторизация
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "403":
+          description: Доступ запрещён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "404":
+          description: Объект не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+
+  /api/v1/utils/group-by/creature-type:
+    get:
+      summary: Группировка по creatureType
+      description: Возвращает количество объектов для каждого значения creatureType.
+      security:
+        - bearerAuth: [ ]
+      tags: [ Utils ]
+      operationId: groupByCreatureType
+      responses:
+        "200":
+          description: Список типов и их количество
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupedByCreatureTypeDto"
+              example:
+                - creatureType: HOBBIT
+                  count: 5
+                - creatureType: ELF
+                  count: 3
+        "401":
+          description: Требуется авторизация
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "403":
+          description: Доступ запрещён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+
+  /api/v1/utils/unique/defense-levels:
+    get:
+      summary: Уникальные defenseLevel
+      description: Возвращает список уникальных значений defenseLevel.
+      security:
+        - bearerAuth: [ ]
+      tags: [ Utils ]
+      operationId: getUniqueDefenseLevels
+      responses:
+        "200":
+          description: Уникальные значения defenseLevel
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: number
+                  format: float
+              example: [ 1.5, 2.0, 3.75 ]
+        "401":
+          description: Требуется авторизация
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "403":
+          description: Доступ запрещён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+
+  /api/v1/stats/objects-per-user:
+    get:
+      summary: Количество объектов у пользователей
+      description: Возвращает статистику по количеству объектов для каждого пользователя.
+      security:
+        - bearerAuth: [ ]
+      tags: [ Utils ]
+      operationId: getObjectsPerUserStats
+      responses:
+        "200":
+          description: Список пользователей с количеством объектов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ObjectsPerUserStatsDto'
+              example:
+                - userSub: "aboba@mail.ru"
+                  count: 5
+                - userSub: "student@mail.ru"
+                  count: 12
+                - userSub: "admin@mail.ru"
+                  count: 0
+        "401":
+          description: Требуется авторизация
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "403":
+          description: Доступ запрещён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+
+  /api/v1/distribute-rings:
+    post:
+      summary: Рандомное распределение колец
+      description: Выполняет случайное распределение колец между существами. Тело ответа отсутствует.
+      security:
+        - bearerAuth: [ ]
+      tags: [ Utils ]
+      operationId: distributeRings
+      responses:
+        "204":
+          description: Кольца распределены, обновление данных прилетит в сокет
+        "401":
+          description: Требуется авторизация
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "403":
+          description: Доступ запрещён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+
   /api/v1/objects/test:
     post:
       summary: Добавить тестовые объекты
-      description: Добавляет 10 тестовых объектов в систему.
+      description: Создаёт несколько тестовых объектов для проверки работы системы.
       security:
         - bearerAuth: [ ]
       tags: [ Utils ]
       operationId: createTestObjects
       responses:
         "200":
-          description: Тестовые объекты успешно созданы.
+          description: Тестовые объекты созданы
           content:
             application/json:
               schema:
@@ -36,22 +230,35 @@ paths:
                   success:
                     type: boolean
                     example: true
+        "401":
+          description: Требуется авторизация
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "403":
+          description: Доступ запрещён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
         "500":
           description: Внутренняя ошибка сервера
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/FormattedApiException"
+
   /api/v1/objects:
     post:
-      summary: Добавить новый объект
-      description: Добавляет новый объект в систему.
+      summary: Добавить объект
+      description: Создаёт новый объект и возвращает его.
       security:
         - bearerAuth: [ ]
       tags: [ Objects ]
       operationId: createObject
       requestBody:
-        description: объект для добавления
+        description: Объект для добавления
         required: true
         content:
           application/json:
@@ -59,13 +266,25 @@ paths:
               $ref: "#/components/schemas/BookCreatureDto"
       responses:
         "200":
-          description: Объект успешно создан.
+          description: Объект создан
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/BookCreatureDto"
         "400":
-          description: Клиентский запрос некорректен
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "401":
+          description: Требуется авторизация
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "403":
+          description: Доступ запрещён
           content:
             application/json:
               schema:
@@ -78,7 +297,7 @@ paths:
                 $ref: "#/components/schemas/FormattedApiException"
     get:
       summary: Получить список объектов
-      description: Возвращает список всех объектов в системе.
+      description: Возвращает список объектов с поддержкой пагинации и сортировки.
       security:
         - bearerAuth: [ ]
       tags: [ Objects ]
@@ -87,33 +306,42 @@ paths:
         - name: page
           in: query
           description: Номер страницы (0-based)
-          required: false
           schema:
             type: integer
             default: 0
         - name: size
           in: query
           description: Размер страницы
-          required: false
           schema:
             type: integer
             default: 20
         - name: sort
           in: query
-          description: Сортировка в формате поле,asc|desc. Можно указать несколько.
-          required: false
+          description: "Сортировка: поле,asc|desc"
           schema:
             type: string
             default: id,asc
       responses:
         "200":
-          description: Список объектов успешно получен.
+          description: Список объектов
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/FormattedBookCreaturePage"
         "400":
-          description: Клиентский запрос некорректен
+          description: Некорректные параметры
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "401":
+          description: Требуется авторизация
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "403":
+          description: Доступ запрещён
           content:
             application/json:
               schema:
@@ -126,37 +354,42 @@ paths:
                 $ref: "#/components/schemas/FormattedApiException"
 
   /api/v1/objects/{id}:
-    patch:
-      summary: Обновить существующий объект
-      description: Обновляет данные существующего объекта в системе.
+    get:
+      summary: Получить объект по ID
+      description: Возвращает объект по идентификатору.
       security:
         - bearerAuth: [ ]
       tags: [ Objects ]
-      operationId: patchObject
+      operationId: getObjectById
       parameters:
         - name: id
           in: path
-          description: Идентификатор объекта для обновления
+          description: Идентификатор объекта
           required: true
           schema:
             type: integer
             format: int64
-      requestBody:
-        description: объект для обновления
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/BookCreatureDto"
       responses:
         "200":
-          description: Объект успешно обновлен.
+          description: Объект найден
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/BookCreatureDto"
-        "400":
-          description: Клиентский запрос некорректен
+        "401":
+          description: Требуется авторизация
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "403":
+          description: Доступ запрещён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "404":
+          description: Объект не найден
           content:
             application/json:
               schema:
@@ -167,30 +400,55 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/FormattedApiException"
-    get:
-      summary: Получить объект по ID
-      description: Возвращает данные объекта по его идентификатору.
+    patch:
+      summary: Обновить объект
+      description: Обновляет данные существующего объекта.
       security:
         - bearerAuth: [ ]
       tags: [ Objects ]
-      operationId: getObjectById
+      operationId: patchObject
       parameters:
         - name: id
           in: path
-          description: Идентификатор объекта для обновления
+          description: Идентификатор объекта
           required: true
           schema:
             type: integer
             format: int64
+      requestBody:
+        description: Данные для обновления
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookCreatureDto"
       responses:
         "200":
-          description: Объект успешно получен.
+          description: Объект обновлён
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/BookCreatureDto"
         "400":
-          description: Клиентский запрос некорректен
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "401":
+          description: Требуется авторизация
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "403":
+          description: Доступ запрещён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "404":
+          description: Объект не найден
           content:
             application/json:
               schema:
@@ -202,8 +460,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/FormattedApiException"
     delete:
-      summary: Удалить объект по ID
-      description: Удаляет объект из системы по его идентификатору.
+      summary: Удалить объект
+      description: Удаляет объект по идентификатору.
       security:
         - bearerAuth: [ ]
       tags: [ Objects ]
@@ -211,22 +469,28 @@ paths:
       parameters:
         - name: id
           in: path
-          description: Идентификатор объекта для обновления
+          description: Идентификатор объекта
           required: true
           schema:
             type: integer
             format: int64
       responses:
         "204":
-          description: Объект успешно удален.
-        "400":
-          description: Клиентский запрос некорректен
+          description: Объект удалён
+        "401":
+          description: Требуется авторизация
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/FormattedApiException"
         "403":
-          description: Доступ запрещен
+          description: Доступ запрещён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "404":
+          description: Объект не найден
           content:
             application/json:
               schema:
@@ -237,13 +501,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/FormattedApiException"
+
   /api/v1/users/signup:
     post:
       tags: [ Users ]
-      summary: Зарегистрировать нового пользователя
+      summary: Регистрация пользователя
+      description: Создаёт нового пользователя.
       operationId: signup
       requestBody:
-        description: Данные для регистрации нового пользователя
+        description: Данные для регистрации
         required: true
         content:
           application/json:
@@ -251,31 +517,39 @@ paths:
               $ref: "#/components/schemas/UserSignupRequest"
       responses:
         "200":
-          description: Пользователь успешно зарегистрирован
+          description: Пользователь зарегистрирован
         "400":
-          description: Ошибка валидации данных
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormattedApiException"
+        "409":
+          description: Пользователь уже существует
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/FormattedApiException"
         "500":
           description: Внутренняя ошибка сервера
+
   /api/v1/users/me:
     get:
       tags: [ Users ]
-      summary: Получить информацию о текущем пользователе
+      summary: Текущий пользователь
+      description: Возвращает информацию о пользователе, авторизованном по токену.
       operationId: getCurrentUser
       security:
         - bearerAuth: [ ]
       responses:
         "200":
-          description: Информация о текущем пользователе
+          description: Данные пользователя
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomUserDetailsDto"
         "401":
-          description: Пользователь не аутентифицирован
+          description: Пользователь не авторизован
           content:
             application/json:
               schema:
@@ -296,6 +570,33 @@ components:
       description: "JWT для авторизации запросов"
 
   schemas:
+    ObjectsPerUserStatsDto:
+      type: object
+      description: Статистика по количеству объектов у пользователя
+      properties:
+        userEmail:
+          type: string
+          description: Идентификатор пользователя (ownerSub)
+        count:
+          type: integer
+          format: int32
+          description: Количество объектов, принадлежащих пользователю
+      required:
+        - userEmail
+        - count
+    GroupedByCreatureTypeDto:
+      type: object
+      description: Результат группировки по creatureType
+      properties:
+        creatureType:
+          $ref: '#/components/schemas/BookCreatureType'
+        count:
+          type: integer
+          format: int32
+          description: Количество элементов в группе
+      required:
+        - creatureType
+        - count
     CustomUserDetailsDto:
       type: object
       properties:
