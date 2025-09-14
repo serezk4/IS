@@ -97,38 +97,61 @@ fun Human.toDto() = HumanDto(
     birthday = this.birthday
 )
 
-fun BookCreature.partialUpdate(bookCreatureDto: BookCreatureDto): BookCreature {
-    bookCreatureDto.name.takeIf { it.isNotBlank() }?.let { this.name = it }
-    bookCreatureDto.coordinates.let {
-        this.coordinates.x = it.x
-        this.coordinates.y = it.y.toDouble()
+private inline fun <T> setIfChanged(
+    current: () -> T?,
+    newValue: T?,
+    crossinline accept: (T) -> Boolean = { true },
+    crossinline setter: (T) -> Unit
+) {
+    if (newValue != null && accept(newValue) && current() != newValue) {
+        setter(newValue)
     }
-    bookCreatureDto.age.let { this.age = it }
-    bookCreatureDto.creatureType.let { this.creatureType = it }
-    bookCreatureDto.creatureLocation.let {
-        this.creatureLocation.name = it.name
-        this.creatureLocation.area = it.area
-        this.creatureLocation.population = it.population
-        it.establishmentDate?.let { date -> this.creatureLocation.establishmentDate = date }
-        it.governor.let { governorDto ->
-            governorDto.birthday?.let { date -> this.creatureLocation.governor.birthday = date }
-        }
-        it.isCapital?.let { capital -> this.creatureLocation.isCapital = capital }
-        this.creatureLocation.populationDensity = it.populationDensity
-    }
-    bookCreatureDto.attackLevel.let { this.attackLevel = it }
-    bookCreatureDto.defenseLevel.let { this.defenseLevel = it }
-    bookCreatureDto.ring?.let {
-        if (this.ring == null) {
-            this.ring = Ring(
-                name = it.name
-            )
-        } else {
-            it.name.takeIf { name -> name.isNotBlank() }?.let { name -> this.ring!!.name = name }
-        }
+}
+
+fun BookCreature.partialUpdate(dto: BookCreatureDto): BookCreature = apply {
+    setIfChanged({ name }, dto.name, { it.isNotBlank() }) { name = it }
+
+    setIfChanged({ coordinates.x }, dto.coordinates.x) { coordinates.x = it }
+    setIfChanged({ coordinates.y }, dto.coordinates.y.toDouble()) { coordinates.y = it }
+
+    setIfChanged({ age }, dto.age, { it > 0 }) { age = it }
+    setIfChanged({ creatureType }, dto.creatureType) { creatureType = it }
+
+    dto.creatureLocation.let { loc ->
+        setIfChanged({ creatureLocation.name }, loc.name, { it.isNotBlank() }) { creatureLocation.name = it }
+        setIfChanged({ creatureLocation.area }, loc.area, { it > 0 }) { creatureLocation.area = it }
+        setIfChanged({ creatureLocation.population }, loc.population, { it > 0 }) { creatureLocation.population = it }
+        setIfChanged(
+            { creatureLocation.establishmentDate },
+            loc.establishmentDate
+        ) { creatureLocation.establishmentDate = it }
+        setIfChanged(
+            { creatureLocation.governor.birthday },
+            loc.governor.birthday
+        ) { creatureLocation.governor.birthday = it }
+        setIfChanged({ creatureLocation.isCapital }, loc.isCapital) { creatureLocation.isCapital = it }
+        setIfChanged(
+            { creatureLocation.populationDensity },
+            loc.populationDensity,
+            { it > 0 }) { creatureLocation.populationDensity = it }
     }
 
-    return this
+    setIfChanged({ attackLevel }, dto.attackLevel, { it >= 1 }) { attackLevel = it }
+    setIfChanged({ defenseLevel }, dto.defenseLevel, { it > 0f }) { defenseLevel = it }
+
+    dto.ring?.let { r ->
+        if (ring == null) {
+            if (r.name.isNotBlank() || (r.weight > 0f)) {
+                ring = Ring(
+                    name = r.name.takeIf { it.isNotBlank() },
+                    weight = r.weight.takeIf { it > 0f }
+                )
+            }
+        } else {
+            setIfChanged({ ring!!.name }, r.name, { it.isNotBlank() }) { ring!!.name = it }
+            setIfChanged({ ring!!.weight }, r.weight, { it > 0f }) { ring!!.weight = it }
+        }
+    }
 }
 
 fun Page<BookCreatureDto>.toResponse() = FormattedBookCreaturePage(
