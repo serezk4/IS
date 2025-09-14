@@ -14,6 +14,7 @@ class UtilsController(
 ) : UtilsApi {
 
     override fun createTestObjects(): ResponseEntity<CreateTestObjects200Response> {
+        objectsService.getObjectById(2)
         return super.createTestObjects()
     }
 

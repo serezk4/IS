@@ -7,3 +7,9 @@ style:
     maxLineLength: 150
   ForbiddenComment:
     active: false
+
+complexity:
+  TooManyFunctions:
+    active: false
+  NestedBlockDepth:
+    active: false
