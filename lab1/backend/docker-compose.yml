@@ -108,7 +108,7 @@ services:
         DOCKER_BUILDKIT: 1
     restart: on-failure
     environment:
-      - SPRING_PROFILES_ACTIVE=local
+      - SPRING_PROFILES_ACTIVE=docker
     ports:
       - "8080:8080"
     healthcheck:
