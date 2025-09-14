@@ -101,12 +101,12 @@ services:
     image: cr.yandex/crpa0c9avqe31tmi0mfu/is-lab1:latest
     container_name: backend
     volumes:
-      - ~/volumes/backend-logs:/var/log/is
+      - ~/volumes/backend-logs:/var/log
     build:
       context: .
       args:
         DOCKER_BUILDKIT: 1
-      restart: on-failure
+    restart: on-failure
     ports:
       - "8080:8080"
     healthcheck:
