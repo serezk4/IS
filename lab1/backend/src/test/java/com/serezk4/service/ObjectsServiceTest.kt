@@ -8,7 +8,6 @@ import com.serezk4.api.model.Government
 import com.serezk4.api.model.HumanDto
 import com.serezk4.constants.ADMIN
 import com.serezk4.constants.USER
-import com.serezk4.entity.City
 import com.serezk4.entity.Coordinates
 import com.serezk4.entity.Human
 import com.serezk4.exception.ObjectNotFoundException
@@ -17,7 +16,6 @@ import com.serezk4.exception.ValidationException
 import com.serezk4.model.CustomUserDetails
 import com.serezk4.model.RealmAccess
 import com.serezk4.model.ResourceRoles
-import com.serezk4.repository.CityRepository
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

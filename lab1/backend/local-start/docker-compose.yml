@@ -4,7 +4,7 @@ services:
     restart: on-failure
     container_name: local-redis
     ports:
-      - "0.0.0.0:6379:6379"
+      - "6379:6379"
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
     container_name: postgres-local
     ports:
-      - "0.0.0.0:1232:5432"
+      - "1232:5432"
     environment:
       POSTGRES_USER: backend
       POSTGRES_PASSWORD: backend
@@ -44,4 +44,70 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     command: >
       bash -c "rabbitmq-plugins enable --offline rabbitmq_management rabbitmq_stomp rabbitmq_web_stomp && rabbitmq-server"
-    
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
+    container_name: elasticsearch
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "true"
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      ELASTIC_PASSWORD: "changeme_elastic"
+      bootstrap.memory_lock: "true"
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -s -u elastic:changeme_elastic http://localhost:9200 >/dev/null" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    restart: unless-stopped
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.14.3
+    container_name: logstash
+    restart: unless-stopped
+    ports:
+      - "5044:5044"
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.14.3
+    container_name: filebeat
+    restart: unless-stopped
+    depends_on:
+      - logstash
+    user: root
+    command: [ "-e", "-strict.perms=false" ]
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/log/is/:/var/log/is/:ro
+      - filebeat-data:/usr/share/filebeat/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.14.3
+    container_name: kibana
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
+      ELASTICSEARCH_SERVICEACCOUNTTOKEN: "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYTo2dmR0UmZ1V1M4cVRucFpyNXkwVkh3"
+
+      XPACK_SECURITY_ENABLED: "true"
+      XPACK_SECURITY_ENCRYPTIONKEY: "xY2C6Vg9Nq4Lh0TsWf8Jp3Ru6Mz1Qa7e"
+      XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: "Q8wT3rV6yN1kD4sM9pF2aJ5lH8cB0zXe"
+      XPACK_REPORTING_ENCRYPTIONKEY: "Z1xC4vB7nM0kP3sW6dH9lA2jE5rT8qUy"
+      XPACK_REPORTING_ROLES_ENABLED: "false"
+      XPACK_SCREENSHOTTING_BROWSER_CHROMIUM_DISABLESANDBOX: "true"
+      SERVER_HOST: "0.0.0.0"
+    restart: unless-stopped
+
+volumes:
+  filebeat-data:

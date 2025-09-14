@@ -1,5 +1,6 @@
 package com.serezk4.entity
 
+import com.serezk4.constants.MAX_X_VALUE
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
@@ -18,7 +19,7 @@ data class Coordinates(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @field:Max(109)
+    @field:Max(MAX_X_VALUE)
     @Column(name = "x")
     var x: Long,
 

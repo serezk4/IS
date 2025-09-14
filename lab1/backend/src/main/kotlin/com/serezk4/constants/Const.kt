@@ -14,3 +14,6 @@ const val DELETE = "delete"
 
 // ws exchanges
 const val DEFAULT_EXCHANGE = ""
+
+// constraints
+const val MAX_X_VALUE = 109L

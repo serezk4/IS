@@ -24,7 +24,7 @@ import java.time.OffsetDateTime
 
 @Entity
 @Table(name = "book_creatures")
-class BookCreature(
+data class BookCreature(
 
     @Id
     @Column(name = "id", updatable = false, nullable = false)
@@ -34,6 +34,9 @@ class BookCreature(
     @field:NotBlank
     @Column(name = "owner_sub", nullable = false, length = 128)
     var ownerSub: String? = null,
+
+    @Column(name = "owner_email", nullable = false, length = 256)
+    var ownerEmail: String? = null,
 
     @field:NotBlank
     @Column(name = "name", nullable = false, length = 200)

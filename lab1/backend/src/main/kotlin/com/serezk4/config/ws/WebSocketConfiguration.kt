@@ -7,7 +7,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 
 @Configuration
 @EnableWebSocket
-class SimpleWebSocketConfig(
+class WebSocketConfiguration(
     private val webSocketHandler: WebSocketHandler
 ) : WebSocketConfigurer {
     override fun registerWebSocketHandlers(

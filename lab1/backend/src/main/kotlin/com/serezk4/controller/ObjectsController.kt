@@ -1,8 +1,8 @@
 package com.serezk4.controller
 
 import com.serezk4.api.api.ObjectsApi
-import com.serezk4.api.model.CityDto
-import com.serezk4.api.model.FormattedCityPage
+import com.serezk4.api.model.BookCreatureDto
+import com.serezk4.api.model.FormattedBookCreaturePage
 import com.serezk4.service.ObjectsService
 import com.serezk4.util.parseSort
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
@@ -17,33 +17,33 @@ class ObjectsController(
 ) : ObjectsApi {
 
     @RateLimiter(name = "default")
-    override fun createObject(cityDto: CityDto): ResponseEntity<CityDto> {
-        val createdCity = objectsService.createObject(cityDto)
+    override fun createObject(bookCreatureDto: BookCreatureDto): ResponseEntity<BookCreatureDto> {
+        val createdCity = objectsService.createObject(bookCreatureDto)
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCity)
     }
 
     @RateLimiter(name = "default")
-    override fun deleteObjectById(id: Int): ResponseEntity<Unit> {
+    override fun deleteObjectById(id: Long): ResponseEntity<Unit> {
         objectsService.deleteObjectById(id)
         return ResponseEntity.noContent().build()
     }
 
     @RateLimiter(name = "default")
-    override fun getObjectById(id: Int): ResponseEntity<CityDto> {
+    override fun getObjectById(id: Long): ResponseEntity<BookCreatureDto> {
         val city = objectsService.getObjectById(id)
         return ResponseEntity.ok(city)
     }
 
     @RateLimiter(name = "default")
-    override fun getObjects(page: Int, size: Int, sort: String): ResponseEntity<FormattedCityPage> {
+    override fun getObjects(page: Int, size: Int, sort: String): ResponseEntity<FormattedBookCreaturePage> {
         val pageable = PageRequest.of(page, size, parseSort(sort))
         val cities = objectsService.getObjects(pageable)
         return ResponseEntity.ok().body(cities)
     }
 
     @RateLimiter(name = "default")
-    override fun patchObject(id: Int, cityDto: CityDto): ResponseEntity<CityDto> {
-        val updatedCity = objectsService.patchObject(id, cityDto)
+    override fun patchObject(id: Long, bookCreatureDto: BookCreatureDto): ResponseEntity<BookCreatureDto> {
+        val updatedCity = objectsService.patchObject(id, bookCreatureDto)
         return ResponseEntity.ok(updatedCity)
     }
 }

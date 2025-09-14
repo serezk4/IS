@@ -3,13 +3,11 @@ package com.serezk4.service
 import com.serezk4.adapter.WebSocketAdapter
 import com.serezk4.api.model.Climate
 import com.serezk4.api.model.Government
-import com.serezk4.entity.City
 import com.serezk4.entity.Coordinates
 import com.serezk4.entity.Human
 import com.serezk4.model.CustomUserDetails
 import com.serezk4.model.RealmAccess
 import com.serezk4.model.ResourceRoles
-import com.serezk4.repository.CityRepository
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
