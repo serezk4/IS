@@ -15,4 +15,6 @@ class AccessService {
             bookCreature.ownerSub == sub || user.realmAccess.roles.contains(ADMIN)
         ) { throw ObjectNotOwnedException() }
     }
+
+    fun isAdmin() = user.realmAccess.roles.contains(ADMIN)
 }

@@ -34,7 +34,7 @@ class CacheConfiguration {
             )
             .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(StringRedisSerializer()))
 
-        val citiesConfig = defaultConfig.serializeValuesWith(
+        val creaturesConfig = defaultConfig.serializeValuesWith(
             RedisSerializationContext.SerializationPair.fromSerializer(
                 Jackson2JsonRedisSerializer(mapper, FormattedCityPage::class.java)
             )
@@ -42,7 +42,7 @@ class CacheConfiguration {
 
         val initialCacheConfigurations: Map<String, RedisCacheConfiguration> =
             mapOf(
-                "cities" to citiesConfig
+                "creatures" to creaturesConfig
             ) + cacheConfigs.redisCacheTypesConfigs(defaultConfig, mapper)
 
         return RedisCacheManager.builder(factory)

@@ -116,7 +116,7 @@ fun generateMagicCity(): MagicCity {
 fun generateBookCreature(
     ownerSub: String = randomSub(),
     ownerEmail: String = randomEmail(ownerSub),
-    creatureType: BookCreatureType = BookCreatureType.values().random(),
+    creatureType: BookCreatureType = BookCreatureType.entries.toTypedArray().random(),
     withRingProbability: Double = GenDefaults.WITH_RING_PROB
 ): BookCreature = BookCreature(
     id = null,
@@ -132,18 +132,3 @@ fun generateBookCreature(
     ring = if (randomBool(withRingProbability)) generateRing() else null,
     creationDate = OffsetDateTime.now(ZoneOffset.UTC)
 )
-
-fun generateBookCreatures(
-    count: Int,
-    ownerSub: String? = null,
-    ownerEmail: String? = null,
-    withRingProbability: Double = GenDefaults.WITH_RING_PROB
-): List<BookCreature> = List(count) {
-    val sub = ownerSub ?: randomSub()
-    val email = ownerEmail ?: randomEmail(sub)
-    generateBookCreature(
-        ownerSub = sub,
-        ownerEmail = email,
-        withRingProbability = withRingProbability
-    )
-}

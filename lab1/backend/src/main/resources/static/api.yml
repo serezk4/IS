@@ -32,8 +32,12 @@ paths:
             type: integer
             format: int64
       responses:
-        "204":
-          description: Объект удалён
+        "200":
+          description: Удалённый объект
+          content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/BookCreatureDto"
         "401":
           description: Требуется авторизация
           content:
@@ -47,7 +51,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/FormattedApiException"
         "404":
-          description: Объект не найден
+          description: Объект с таким attackLevel не найден ИЛИ такой объект есть, но он не принадлежит текущему пользователю
           content:
             application/json:
               schema:
