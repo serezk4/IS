@@ -46,7 +46,6 @@ fun BookCreature.toDto() = BookCreatureDto(
     id = this.id,
     ring = this.ring?.toDto(),
     creationDate = this.creationDate,
-    lastModifiedDate = this.lastModifiedDate
 )
 
 fun MagicCity.toDto() = MagicCityDto(

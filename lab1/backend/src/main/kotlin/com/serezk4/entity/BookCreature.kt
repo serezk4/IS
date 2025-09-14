@@ -18,8 +18,6 @@ import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
-import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.LastModifiedDate
 import java.time.OffsetDateTime
 
 @Entity
@@ -85,13 +83,7 @@ data class BookCreature(
     )
     @JoinColumn(name = "ring_id")
     var ring: Ring? = null,
-) {
 
-    @CreatedDate
-    @Column(nullable = false, updatable = false, name = "creation_date", columnDefinition = "timestamptz")
-    lateinit var creationDate: OffsetDateTime
-
-    @LastModifiedDate
-    @Column(nullable = false, name = "last_modified_date", columnDefinition = "timestamptz")
-    lateinit var lastModifiedDate: OffsetDateTime
-}
+    @Column(name = "creation_date", nullable = false, updatable = false, columnDefinition = "timestamptz")
+    var creationDate: OffsetDateTime ?= null,
+)

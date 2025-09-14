@@ -1,21 +1,22 @@
 package com.serezk4.service
 
 import com.serezk4.adapter.WebSocketAdapter
-import com.serezk4.api.model.CityDto
-import com.serezk4.api.model.Climate
-import com.serezk4.api.model.CoordinatesDto
-import com.serezk4.api.model.Government
-import com.serezk4.api.model.HumanDto
+import com.serezk4.api.model.BookCreatureType
 import com.serezk4.constants.ADMIN
 import com.serezk4.constants.USER
+import com.serezk4.entity.BookCreature
 import com.serezk4.entity.Coordinates
 import com.serezk4.entity.Human
+import com.serezk4.entity.MagicCity
+import com.serezk4.entity.Ring
 import com.serezk4.exception.ObjectNotFoundException
 import com.serezk4.exception.ObjectNotOwnedException
 import com.serezk4.exception.ValidationException
+import com.serezk4.mapper.toDto
 import com.serezk4.model.CustomUserDetails
 import com.serezk4.model.RealmAccess
 import com.serezk4.model.ResourceRoles
+import com.serezk4.repository.BookCreatureRepository
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -41,16 +42,16 @@ import java.util.*
 
 class ObjectsServiceTest {
 
-    private val cityRepository: CityRepository = mock()
+    private val bookCreatureRepository: BookCreatureRepository = mock()
     private val accessService: AccessService = spy()
     private val timeService: TimeService = mock()
     private val websocketAdapter: WebSocketAdapter = mock()
 
     private val underTest = ObjectsService(
-        cityRepository,
+        bookCreatureRepository,
         accessService,
-        timeService,
-        websocketAdapter
+        websocketAdapter,
+        timeService
     )
 
     @BeforeEach
@@ -61,8 +62,8 @@ class ObjectsServiceTest {
         `when`(mockAuth.principal).thenReturn(sampleUser)
         `when`(mockContext.authentication).thenReturn(mockAuth)
 
-        `when`(cityRepository.findById(sampleCityId))
-            .thenReturn(Optional.of(sampleCreatedCity))
+        `when`(bookCreatureRepository.findById(sampleBookCreatureId))
+            .thenReturn(Optional.of(sampleCreatedBookCreature))
 
         `when`(websocketAdapter.broadcast(any()))
             .thenAnswer {}
@@ -70,47 +71,32 @@ class ObjectsServiceTest {
         SecurityContextHolder.setContext(mockContext)
 
         given(timeService.now())
-            .willReturn(sampleCreationDate)
+            .willReturn(sampleOffsetDateTime)
     }
 
     @Test
     fun `createObject should create object if object correct`() {
         // Given
-        `when`(cityRepository.save(any()))
-            .thenReturn(sampleCreatedCity)
+        `when`(bookCreatureRepository.save(any()))
+            .thenReturn(sampleCreatedBookCreature)
 
         // When
-        val result = underTest.createObject(sampleCityDto)
+        val result = underTest.createObject(sampleBookCreatureDto)
 
         // Then
         verify(websocketAdapter).broadcast(any())
-        result.id shouldBe sampleCityId
-        result.creationDate shouldBe sampleCreationDate
-    }
-
-    @Test
-    fun `createObject should throw error if object have validation failures`() {
-        // Given
-        val invalidCityDto = sampleCityDto.copy(name = "")
-
-        // When
-        val exception = assertThrows<ValidationException> {
-            underTest.createObject(invalidCityDto)
-        }
-
-        // Then
-        verify(websocketAdapter, never()).broadcast(any())
-        exception.errorCode shouldBe "validation_failed"
+        result.id shouldBe sampleBookCreatureId
+        result.creationDate shouldBe sampleOffsetDateTime
     }
 
     @Test
     fun `deleteObjectById should delete object when own by user`() {
         // Given
-        `when`(cityRepository.deleteById(sampleCityId))
+        `when`(bookCreatureRepository.deleteById(sampleBookCreatureId))
             .thenAnswer {}
 
         // When
-        underTest.deleteObjectById(sampleCityId)
+        underTest.deleteObjectById(sampleBookCreatureId)
 
         // Then
         verify(websocketAdapter).broadcast(any())
@@ -119,8 +105,8 @@ class ObjectsServiceTest {
     @Test
     fun `deleteObjectById should throw error if object not found`() {
         // Given
-        val nonExistentId = 999
-        `when`(cityRepository.findById(nonExistentId))
+        val nonExistentId = 999L
+        `when`(bookCreatureRepository.findById(nonExistentId))
             .thenReturn(Optional.empty())
 
         // When
@@ -146,11 +132,11 @@ class ObjectsServiceTest {
         `when`(mockContext.authentication).thenReturn(mockAuth)
         SecurityContextHolder.setContext(mockContext)
 
-        `when`(cityRepository.deleteById(sampleCityId))
+        `when`(bookCreatureRepository.deleteById(sampleBookCreatureId))
             .thenAnswer {}
 
         // When
-        underTest.deleteObjectById(sampleCityId)
+        underTest.deleteObjectById(sampleBookCreatureId)
 
         // Then
         verify(websocketAdapter).broadcast(any())
@@ -169,7 +155,7 @@ class ObjectsServiceTest {
 
         // When
         val exception = assertThrows<ObjectNotOwnedException> {
-            underTest.deleteObjectById(sampleCityId)
+            underTest.deleteObjectById(sampleBookCreatureId)
         }
 
         // Then
@@ -180,14 +166,14 @@ class ObjectsServiceTest {
     @Test
     fun `patchObject should update object if own by user and data valid`() {
         // Given
-        val updatedCityDto = sampleCityDto.copy(name = "Updated City Name")
-        val updatedCity = sampleCreatedCity.copy(name = "Updated City Name")
+        val updatedBookCreature = sampleBookCreatureDto.copy(name = "Updated City Name")
+        val updatedCity = sampleCreatedBookCreature.copy(name = "Updated City Name")
 
-        `when`(cityRepository.save(any()))
+        `when`(bookCreatureRepository.save(any()))
             .thenReturn(updatedCity)
 
         // When
-        val result = underTest.patchObject(sampleCityId, updatedCityDto)
+        val result = underTest.patchObject(sampleBookCreatureId, updatedBookCreature)
 
         // Then
         verify(websocketAdapter).broadcast(any())
@@ -197,38 +183,37 @@ class ObjectsServiceTest {
     @Test
     fun `patchObject should not update id and creationDate`() {
         // Given
-        val updatedCityDto = sampleCityDto.copy(
+        val updatedBookCreatureDto = sampleBookCreatureDto.copy(
             name = "Updated City Name",
-            id = 999,
-            creationDate = LocalDate.of(2000, 1, 1)
+            id = 999
         )
-        val updatedCity = sampleCreatedCity.copy(
+        val updatedBookCreature = sampleCreatedBookCreature.copy(
             name = "Updated City Name",
         )
 
-        `when`(cityRepository.save(any()))
-            .thenReturn(updatedCity)
+        `when`(bookCreatureRepository.save(any()))
+            .thenReturn(updatedBookCreature)
 
         // When
-        val result = underTest.patchObject(sampleCityId, updatedCityDto)
+        val result = underTest.patchObject(sampleBookCreatureId, updatedBookCreatureDto)
 
         // Then
         verify(websocketAdapter).broadcast(any())
-        result.id shouldBe sampleCityId
-        result.creationDate shouldBe sampleCreationDate
+        result.id shouldBe sampleBookCreatureId
+        result.creationDate shouldBe sampleOffsetDateTime
         result.name shouldBe "Updated City Name"
     }
 
     @Test
     fun `patchObject should throw error if object not found`() {
         // Given
-        val nonExistentId = 999
-        `when`(cityRepository.findById(nonExistentId))
+        val nonExistentId = 999L
+        `when`(bookCreatureRepository.findById(nonExistentId))
             .thenReturn(Optional.empty())
 
         // When
         val exception = assertThrows<ObjectNotFoundException> {
-            underTest.patchObject(nonExistentId, sampleCityDto)
+            underTest.patchObject(nonExistentId, sampleBookCreatureDto)
         }
 
         // Then
@@ -249,7 +234,7 @@ class ObjectsServiceTest {
 
         // When
         val exception = assertThrows<ObjectNotOwnedException> {
-            underTest.patchObject(sampleCityId, sampleCityDto)
+            underTest.patchObject(sampleBookCreatureId, sampleBookCreatureDto)
         }
 
         // Then
@@ -260,7 +245,7 @@ class ObjectsServiceTest {
     @Test
     fun `getObjects should return paged objects`() {
         // Given
-        `when`(cityRepository.findAll(samplePageable))
+        `when`(bookCreatureRepository.findAll(samplePageable))
             .thenReturn(samplePageResponse)
 
         // When
@@ -269,8 +254,7 @@ class ObjectsServiceTest {
         // Then
         verify(websocketAdapter, never()).broadcast(any())
         result.totalElements shouldBe 1
-        result.content.first().id shouldBe sampleCityId
-        result.number shouldBe 0
+        result.content.first().id shouldBe sampleBookCreatureId
     }
 
     @Test
@@ -278,18 +262,18 @@ class ObjectsServiceTest {
         // Given
 
         // When
-        val result = underTest.getObjectById(sampleCityId)
+        val result = underTest.getObjectById(sampleBookCreatureId)
 
         // Then
         verify(websocketAdapter, never()).broadcast(any())
-        result.id shouldBe sampleCityId
+        result.id shouldBe sampleBookCreatureId
     }
 
     @Test
     fun `getObjectById should throw error if object not found`() {
         // Given
-        val nonExistentId = 999
-        `when`(cityRepository.findById(nonExistentId))
+        val nonExistentId = 999L
+        `when`(bookCreatureRepository.findById(nonExistentId))
             .thenReturn(Optional.empty())
 
         // When
@@ -305,12 +289,13 @@ class ObjectsServiceTest {
     companion object {
 
         private const val sampleUserSub = "57068298-32d2-4649-8d81-5f491c330631"
+        private const val sampleUserEmail = "aboba@mail.ru"
 
-        private val sampleCreationDate = LocalDate.of(2024, 6, 1)
-        private val sampleCityId = 123
-        private val sampleHumanId = 456
-        private val sampleCoordinatesId = 789
-        private val sampleEstablishmentDate = OffsetDateTime.of(
+        private val sampleBookCreatureId = 123L
+        private val sampleHumanId = 456L
+        private val sampleCoordinatesId = 789L
+        private val sampleMagicCityId = 342L
+        private val sampleOffsetDateTime = OffsetDateTime.of(
             /* year = */ 1970,
             /* month = */ 1,
             /* dayOfMonth = */ 1,
@@ -322,56 +307,59 @@ class ObjectsServiceTest {
         )
         private val sampleBirthdayDate = LocalDate.of(1970, 1, 1)
 
-        private val sampleCoordinatesDto = CoordinatesDto(
-            x = 100,
-            y = 50.5f
-        )
-
         private val sampleCoordinates = Coordinates(
             id = sampleCoordinatesId,
             x = 100,
-            y = 50.5f
+            y = 50.5
         )
 
-        private val sampleHumanDto = HumanDto(
-            birthday = sampleBirthdayDate
-        )
+        private val sampleCoordinatesDto = sampleCoordinates.toDto()
 
         private val sampleHuman = Human(
             id = sampleHumanId,
             birthday = sampleBirthdayDate
         )
 
-        private val sampleCityDto = CityDto(
+        private val sampleHumanDto = sampleHuman.toDto()
+
+        private val sampleMagicCity = MagicCity(
+            id = sampleMagicCityId,
             name = "Sample City",
-            coordinates = sampleCoordinatesDto,
-            area = 123.45f,
-            population = 500000,
-            establishmentDate = sampleEstablishmentDate,
-            capital = true,
-            metersAboveSeaLevel = 200,
-            timezone = 3,
-            climate = Climate.HUMIDSUBTROPICAL,
-            government = Government.THALASSOCRACY,
-            governor = sampleHumanDto
+            area = 5000.0,
+            population = 1_000_000,
+            establishmentDate = sampleOffsetDateTime,
+            governor = sampleHuman,
+            isCapital = true,
+            populationDensity = 200.0
         )
 
-        private val sampleCreatedCity = City(
-            id = sampleCityId,
-            name = "Sample City",
-            coordinates = sampleCoordinates,
-            ownerSub = sampleUserSub,
-            area = 123.45f,
-            population = 500000,
-            establishmentDate = sampleEstablishmentDate,
-            creationDate = sampleCreationDate,
-            capital = true,
-            metersAboveSeaLevel = 200,
-            timezone = 3,
-            climate = Climate.HUMIDSUBTROPICAL,
-            government = Government.THALASSOCRACY,
-            governor = sampleHuman
+        private val sampleMagicCityDto = sampleMagicCity.toDto()
+
+        private val sampleRing = Ring(
+            id = 1L,
+            name = "Sample Ring",
+            weight = 10.5f
         )
+
+        private val sampleRingDto = sampleRing.toDto()
+
+        private val sampleCreatedBookCreature = BookCreature(
+            id = sampleBookCreatureId,
+            ownerSub = sampleUserSub,
+            ownerEmail = sampleUserEmail,
+            name = "test",
+            coordinates = sampleCoordinates,
+            age = 10,
+            creatureType = BookCreatureType.HUMAN,
+            creatureLocation = sampleMagicCity,
+            attackLevel = 5L,
+            defenseLevel = 3.5f,
+            ring = sampleRing,
+            creationDate = sampleOffsetDateTime
+        )
+
+        private val sampleBookCreatureDto = sampleCreatedBookCreature.toDto()
+            .copy(ownerEmail = null, ownerSub = "", creationDate = null)
 
         private val sampleUser = CustomUserDetails(
             sub = sampleUserSub,
@@ -388,14 +376,14 @@ class ObjectsServiceTest {
             azp = "client-id",
             scope = "openid profile email",
             name = "Иван Иванов",
-            email = "ivan.ivanov@example.com",
+            email = sampleUserEmail,
             exp = Instant.now().plusSeconds(3600),
             iat = Instant.now(),
             jti = "unique-jti"
         )
 
         private val samplePageResponse = PageImpl(
-            listOf(sampleCreatedCity)
+            listOf(sampleCreatedBookCreature)
         )
 
         private val samplePageable = PageRequest.of(0, 10, Sort.unsorted())

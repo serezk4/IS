@@ -26,7 +26,8 @@ import org.springframework.stereotype.Service
 class ObjectsService(
     private val bookCreatureRepository: BookCreatureRepository,
     private val accessService: AccessService,
-    private val websocketAdapter: WebSocketAdapter
+    private val websocketAdapter: WebSocketAdapter,
+    private val timeService: TimeService
 ) {
 
     @CacheEvict(value = ["cities"], allEntries = true)
@@ -35,7 +36,8 @@ class ObjectsService(
             bookCreatureDto.toEntity()
                 .copy(
                     ownerSub = sub,
-                    ownerEmail = user.email
+                    ownerEmail = user.email,
+                    creationDate = timeService.now(),
                 )
         )
             .also { websocketAdapter.broadcast(UpdateNotification(it, CREATE)) }

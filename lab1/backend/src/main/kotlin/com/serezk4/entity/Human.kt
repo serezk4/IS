@@ -15,7 +15,7 @@ data class Human(
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Int? = null,
+    val id: Long? = null,
 
     @Column(name = "birthday")
     var birthday: LocalDate? = null
