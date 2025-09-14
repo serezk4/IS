@@ -124,16 +124,19 @@ class ObjectsService(
             .forEach { websocketAdapter.broadcast(UpdateNotification(it, UPDATE)) }
     }
 
-    fun getObjectsPerUserStats(): List<ObjectsPerUserStatsDto> =
-        bookCreatureRepository.findAll()
+    fun getObjectsPerUserStats(): List<ObjectsPerUserStatsDto> {
+        return bookCreatureRepository.findAll()
             .groupBy { it.ownerEmail ?: "unknown" }
             .map { ObjectsPerUserStatsDto(userEmail = it.key, count = it.value.size) }
+    }
 
-    fun getUniqueDefenseLevels(): List<Float> =
-        bookCreatureRepository.findDistinctDefenseLevels()
+    fun getUniqueDefenseLevels(): List<Float> {
+        return bookCreatureRepository.findDistinctDefenseLevels()
+    }
 
-    fun groupByCreatureType(): List<GroupedByCreatureTypeDto> =
-        bookCreatureRepository.findAll()
+    fun groupByCreatureType(): List<GroupedByCreatureTypeDto> {
+        return bookCreatureRepository.findAll()
             .groupBy { it.creatureType }
             .map { GroupedByCreatureTypeDto(creatureType = it.key, count = it.value.size) }
+    }
 }
