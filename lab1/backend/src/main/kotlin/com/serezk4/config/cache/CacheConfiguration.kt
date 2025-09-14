@@ -1,6 +1,6 @@
 package com.serezk4.config.cache
 
-import com.serezk4.api.model.FormattedCityPage
+import com.serezk4.api.model.FormattedBookCreaturePage
 import com.serezk4.config.jackson.redisJsonObjectMapper
 import com.serezk4.config.redis.RedisCachesConfiguration
 import org.springframework.cache.annotation.EnableCaching
@@ -36,7 +36,7 @@ class CacheConfiguration {
 
         val creaturesConfig = defaultConfig.serializeValuesWith(
             RedisSerializationContext.SerializationPair.fromSerializer(
-                Jackson2JsonRedisSerializer(mapper, FormattedCityPage::class.java)
+                Jackson2JsonRedisSerializer(mapper, FormattedBookCreaturePage::class.java)
             )
         )
 
