@@ -1,7 +1,7 @@
 <configuration scan="true">
 
     <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/var/log/is/app.json</file>
+        <file>/var/log/app.json</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>/var/log/app.%d{yyyy-MM-dd}.%i.json</fileNamePattern>
             <maxFileSize>50MB</maxFileSize>
