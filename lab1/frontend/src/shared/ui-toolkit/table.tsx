@@ -3,7 +3,7 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useTokenRotation} from "@/app/utilities/providers/auth-provider/useTokenRotation";
 import {
-    BookCreature,
+    BookCreature, deleteOneByAttackLevel, deleteOneById,
     getCities,
     normalizeWs,
     openCitiesSocket
@@ -838,6 +838,7 @@ const Table: React.FC<TableProps> = ({fullWidth: fullWidthProp, smartColumns: sm
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => {
+                                                        deleteOneById(row.id, accessToken).then(r => r);
                                                     }} className="text-red-600">
                                                         <Trash2 className="mr-2 h-4 w-4"/> Удалить
                                                     </DropdownMenuItem>

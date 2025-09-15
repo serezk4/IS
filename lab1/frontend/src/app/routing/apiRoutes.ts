@@ -21,6 +21,7 @@ export const apiRoutes = {
         stats_per_user: `${process.env.NEXT_PUBLIC_API_BASE_URL}/stats/objects-per-user`,
         unique_defense_levels: `${process.env.NEXT_PUBLIC_API_BASE_URL}/utils/unique/defense-levels`,
         group_by_creature_type: `${process.env.NEXT_PUBLIC_API_BASE_URL}/utils/group-by/creature-type`,
+        by_id: `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/objects/id`, // + /:id
     },
     ws: {
         base: process.env.NEXT_PUBLIC_WS_BASE_URL,

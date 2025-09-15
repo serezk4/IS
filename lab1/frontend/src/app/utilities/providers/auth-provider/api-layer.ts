@@ -224,6 +224,32 @@ export const distributeRings = async (
     }
 }
 
+export const deleteOneById = async (
+    id: number,
+    token?: string,
+    opts?: { signal?: AbortSignal }
+): Promise<{ ok: boolean; status?: number; errorCode?: string; message?: string } | undefined> => {
+    try {
+        const res = await ax.delete(
+            `${apiRoutes.objects.by_id}/${id}`,
+            {
+                headers: token ? {Authorization: `Bearer ${token}`} : undefined,
+                signal: opts?.signal,
+                validateStatus: () => true,
+            }
+        );
+
+        if (res.status >= 200 && res.status < 300) {
+            return {ok: true};
+        }
+
+        const data = res.data as FormattedApiException | undefined;
+        return {ok: false, status: res.status, ...data};
+    } catch {
+        return undefined;
+    }
+}
+
 export const deleteOneByAttackLevel = async (
     attackLevel: number,
     token?: string,
