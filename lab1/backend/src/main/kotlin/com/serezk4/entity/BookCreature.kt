@@ -42,9 +42,8 @@ data class BookCreature(
 
     @field:NotNull
     @OneToOne(
-        fetch = FetchType.LAZY,
-        cascade = [CascadeType.PERSIST, CascadeType.MERGE],
-        orphanRemoval = true,
+        fetch = FetchType.EAGER,
+        cascade = [CascadeType.MERGE, CascadeType.PERSIST],
         optional = false
     )
     @JoinColumn(name = "coordinates_id", nullable = false)
@@ -61,8 +60,8 @@ data class BookCreature(
 
     @field:NotNull
     @ManyToOne(
-        fetch = FetchType.LAZY,
-        cascade = [CascadeType.PERSIST, CascadeType.MERGE],
+        fetch = FetchType.EAGER,
+        cascade = [CascadeType.MERGE, CascadeType.PERSIST],
         optional = false
     )
     @JoinColumn(name = "creature_location_id", nullable = false)
@@ -77,8 +76,8 @@ data class BookCreature(
     var defenseLevel: Float,
 
     @OneToOne(
-        fetch = FetchType.LAZY,
-        cascade = [CascadeType.PERSIST, CascadeType.MERGE],
+        fetch = FetchType.EAGER,
+        cascade = [CascadeType.MERGE, CascadeType.PERSIST],
         optional = true
     )
     @JoinColumn(name = "ring_id")

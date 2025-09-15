@@ -5,6 +5,7 @@ import com.serezk4.api.model.BookCreatureDto
 import com.serezk4.api.model.FormattedBookCreaturePage
 import com.serezk4.service.ObjectsService
 import com.serezk4.util.parseSort
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
@@ -18,6 +19,7 @@ class ObjectsController(
 
     @RateLimiter(name = "default")
     override fun createObject(bookCreatureDto: BookCreatureDto): ResponseEntity<BookCreatureDto> {
+        logger.info { "Received request to create object: $bookCreatureDto" }
         val createdCity = objectsService.createObject(bookCreatureDto)
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCity)
     }
@@ -45,5 +47,9 @@ class ObjectsController(
     override fun patchObject(id: Long, bookCreatureDto: BookCreatureDto): ResponseEntity<BookCreatureDto> {
         val updatedCity = objectsService.patchObject(id, bookCreatureDto)
         return ResponseEntity.ok(updatedCity)
+    }
+
+    companion object {
+        private val logger = KotlinLogging.logger {}
     }
 }

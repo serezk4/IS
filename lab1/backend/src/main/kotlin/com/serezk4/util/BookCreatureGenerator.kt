@@ -14,7 +14,7 @@ import kotlin.random.Random
 
 private object GenDefaults {
     const val CORD_X_MIN = 0L
-    const val CORD_X_MAX_EXCL = 373L
+    const val CORD_X_MAX_EXCL = 100L
     const val CORD_Y_MIN = 0.0
     const val CORD_Y_MAX_EXCL = 289.0
 
@@ -83,10 +83,10 @@ private fun randomBool(probability: Double): Boolean = Random.nextDouble() < pro
 private fun randomPastOffsetDateTime(
     minYearsAgo: Long,
     maxYearsAgo: Long
-): OffsetDateTime {
+): LocalDate {
     val years = Random.nextLong(minYearsAgo, maxYearsAgo + 1)
     val days = Random.nextLong(0, GenDefaults.DAYS_IN_YEAR + 1)
-    return OffsetDateTime.now(ZoneOffset.UTC).minusYears(years).minusDays(days)
+    return OffsetDateTime.now(ZoneOffset.UTC).minusYears(years).minusDays(days).toLocalDate()
 }
 
 fun generateRing(

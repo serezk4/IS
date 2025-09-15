@@ -1,11 +1,12 @@
 import axios, {AxiosResponse} from "axios";
 import {apiRoutes} from "@/app/routing";
 import {
-    CityCreatePayload,
+    BookCreatureCreatePayload,
     RefreshResponse,
     SignupRequest,
     UserResponse,
 } from "@/app/utilities/providers/auth-provider/types";
+import {GroupedByCreatureTypeDto} from "@/shared/ui-toolkit/group-by-creature-group";
 
 type TokenEndpointResponse = {
     access_token: string;
@@ -19,39 +20,46 @@ export type FormattedApiException = {
     message?: string;
 };
 
-export interface City {
+export interface BookCreature {
     id: number;
-    ownerName: string;
+    ownerEmail: string;
     ownerSub: string;
-    name: string;
-    coordinates: { x: number; y: number; r: number };
+    name: string | null;
+    coordinates: { x: number; y: number };
+    age: number | null,
+    creatureType: string,
+    creatureLocation: {
+        name: string,
+        area: number,
+        population: number,
+        establishmentDate: string | null,
+        governor: { birthday: string } | null,
+        isCapital: boolean | null,
+        populationDensity: number
+    }
     creationDate: string;
-    area: number;
-    population: number;
-    establishmentDate: string;
-    capital: boolean;
+    attackLevel: number;
+    defenseLevel: number;
+    ring: { name: string; weight: number | null };
     isYours: boolean;
-    metersAboveSeaLevel: number;
-    timezone: number;
-    climate:
-        | "HUMIDSUBTROPICAL"
-        | "OCEANIC"
-        | "MEDITERRANIAN"
-        | "TUNDRA"
-    government:
-        | "PUPPET_STATE"
-        | "THALASSOCRACY"
-        | "TELLUROCRACY"
-    governor: { birthday: string } | null;
 }
 
-interface CitiesResponse {
-    content: City[];
+interface BookCreaturesResponse {
+    content: BookCreature[];
     page: number;
     size: number;
     totalElements: number;
     totalPages: number;
     last: boolean;
+}
+
+export interface ObjectsPerUserStats {
+    userEmail: string;
+    objectCount: number;
+}
+
+export interface ObjectsPerUserStatsResponse {
+    stats: ObjectsPerUserStats[];
 }
 
 const ax = axios.create({
@@ -61,35 +69,55 @@ const ax = axios.create({
 
 const formHeaders = {"Content-Type": "application/x-www-form-urlencoded"};
 
-export const updateCity = async (
+export const getGroupByCreatureType = async (
+    token: string,
+    opts?: { signal?: AbortSignal }
+): Promise<GroupedByCreatureTypeDto[] | undefined> =>
+    ax
+        .get<GroupedByCreatureTypeDto[]>(apiRoutes.objects.group_by_creature_type, {
+            headers: token ? {Authorization: `Bearer ${token}`} : undefined,
+            signal: opts?.signal,
+        })
+        .then((r) => r.data)
+        .catch(() => undefined);
+
+export const getUniqueDefenseLevels = async (
+    token: string,
+    opts?: { signal?: AbortSignal }
+): Promise<number[] | undefined> =>
+    ax
+        .get<number[]>(apiRoutes.objects.unique_defense_levels, {
+            headers: token ? {Authorization: `Bearer ${token}`} : undefined,
+            signal: opts?.signal,
+        })
+        .then((r) => r.data)
+        .catch(() => undefined);
+
+export const objectsPerUserStats = async (
+    token?: string,
+    opts?: { signal?: AbortSignal }
+): Promise<ObjectsPerUserStatsResponse | undefined> =>
+    ax
+        .get<ObjectsPerUserStatsResponse>(apiRoutes.objects.stats_per_user, {
+            headers: token ? {Authorization: `Bearer ${token}`} : undefined,
+            signal: opts?.signal,
+        })
+        .then((r) => r.data)
+        .catch(() => undefined);
+
+export const updateBookCreature = async (
     token: string | undefined,
     id: number,
-    payload: Partial<CityCreatePayload>,
+    payload: Partial<BookCreatureCreatePayload>,
     opts?: { signal?: AbortSignal }
 ): Promise<AxiosResponse | undefined> =>
     ax
-        .patch<City>(`${apiRoutes.objects.update}/${id}`, payload, {
+        .patch<BookCreature>(`${apiRoutes.objects.update}/${id}`, payload, {
             headers: token ? {Authorization: `Bearer ${token}`} : undefined,
             signal: opts?.signal,
         })
         .then((r) => r)
         .catch(() => undefined);
-
-export async function migratePopulationHalf(fromId: number, toId: number, token?: string, opts?: {
-    signal?: AbortSignal
-}) {
-    try {
-        await ax.post(
-            `${apiRoutes.objects.migrate_half}`,
-            undefined,
-            {headers: token ? {Authorization: `Bearer ${token}`} : undefined, signal: opts?.signal}
-        );
-        return {ok: true as const};
-    } catch (e: any) {
-        const data = e?.response?.data as FormattedApiException | undefined;
-        return {ok: false as const, status: e?.response?.status, ...data};
-    }
-}
 
 export async function migratePopulation(fromId: number, toId: number, token?: string, opts?: { signal?: AbortSignal }) {
     try {
@@ -109,9 +137,9 @@ export async function searchCitiesByName(
     name: string,
     token?: string,
     opts?: { signal?: AbortSignal }
-): Promise<City[]> {
+): Promise<BookCreature[]> {
     try {
-        const r = await ax.get<City[]>(
+        const r = await ax.get<BookCreature[]>(
             `/api/v1/objects/search`,
             {
                 params: {name},
@@ -170,14 +198,14 @@ export async function createTestObjects(
     return data?.message ?? `Ошибка ${res.status}`;
 }
 
-export const deleteAllByTimezone = async (
-    timezone: number,
+export const distributeRings = async (
     token?: string,
     opts?: { signal?: AbortSignal }
 ): Promise<{ ok: boolean; status?: number; errorCode?: string; message?: string } | undefined> => {
     try {
-        const res = await ax.delete(
-            `${apiRoutes.objects.by_timezone}/${timezone}`,
+        const res = await ax.post(
+            `${apiRoutes.objects.distribute_rings}`,
+            null,
             {
                 headers: token ? {Authorization: `Bearer ${token}`} : undefined,
                 signal: opts?.signal,
@@ -196,14 +224,14 @@ export const deleteAllByTimezone = async (
     }
 }
 
-export const deleteOneByGovernment = async (
-    government: string,
+export const deleteOneByAttackLevel = async (
+    attackLevel: number,
     token?: string,
     opts?: { signal?: AbortSignal }
 ): Promise<{ ok: boolean; status?: number; errorCode?: string; message?: string } | undefined> => {
     try {
         const res = await ax.delete(
-            `${apiRoutes.objects.by_goverment}/${government}`,
+            `${apiRoutes.objects.by_attack_level}/${attackLevel}`,
             {
                 headers: token ? {Authorization: `Bearer ${token}`} : undefined,
                 signal: opts?.signal,
@@ -240,9 +268,9 @@ export const getCities = async (
     size = 10,
     sort = "id,asc",
     opts?: { signal?: AbortSignal }
-): Promise<CitiesResponse | undefined> =>
+): Promise<BookCreaturesResponse | undefined> =>
     ax
-        .get<CitiesResponse>(apiRoutes.objects.fetch, {
+        .get<BookCreaturesResponse>(apiRoutes.objects.fetch, {
             params: {
                 page,
                 size,
@@ -258,10 +286,10 @@ export const getCity = async (
     token?: string,
     id?: number,
     opts?: { signal?: AbortSignal }
-): Promise<City | undefined> => {
+): Promise<BookCreature | undefined> => {
     if (id == null) return undefined;
     return ax
-        .get<City>(`${apiRoutes.objects.fetch}/${id}`, {
+        .get<BookCreature>(`${apiRoutes.objects.fetch}/${id}`, {
             headers: token ? {Authorization: `Bearer ${token}`} : undefined,
             signal: opts?.signal,
         })
@@ -269,13 +297,13 @@ export const getCity = async (
         .catch(() => undefined);
 }
 
-export const createCity = async (
+export const createBookCreature = async (
     token: string | undefined,
-    payload: CityCreatePayload,
+    payload: BookCreatureCreatePayload,
     opts?: { signal?: AbortSignal }
 ): Promise<AxiosResponse | undefined> =>
     ax
-        .post<City>(apiRoutes.objects.create, payload, {
+        .post<BookCreature>(apiRoutes.objects.create, payload, {
             headers: token ? {Authorization: `Bearer ${token}`} : undefined,
             signal: opts?.signal,
         })
@@ -396,9 +424,9 @@ export const requestSignup = async (
 
 type WsOp = 'create' | 'update' | 'delete';
 type AnyMsg = unknown;
-type CitiesWsEnvelope = { city?: City; id?: number; op: WsOp };
+type CitiesWsEnvelope = { city?: BookCreature; id?: number; op: WsOp };
 
-export function normalizeWs(e: AnyMsg): { op: WsOp | null; city?: City; id?: number } {
+export function normalizeWs(e: AnyMsg): { op: WsOp | null; bookCreature?: BookCreature; id?: number } {
     let m: any = e;
     if (typeof m === 'string') {
         try {
@@ -408,13 +436,15 @@ export function normalizeWs(e: AnyMsg): { op: WsOp | null; city?: City; id?: num
         }
     }
 
-    if (m?.data && !m.city) m = {...m, ...m.data};
-    if (m?.payload && !m.city) m = {...m, ...m.payload};
+    console.log(m)
+
+    if (m?.data && !m.bookCreature) m = {...m, ...m.data};
+    if (m?.payload && !m.bookCreature) m = {...m, ...m.payload};
 
     const rawOp = (m?.op ?? m?.type ?? '').toString().toLowerCase();
     const op: WsOp | null = rawOp === 'create' || rawOp === 'update' || rawOp === 'delete' ? rawOp : null;
 
-    const city: City | undefined = m?.city;
+    const city: BookCreature | undefined = m?.bookCreature;
     const id =
         m?.id != null
             ? Number(m.id)
@@ -422,7 +452,7 @@ export function normalizeWs(e: AnyMsg): { op: WsOp | null; city?: City; id?: num
                 ? Number(city.id)
                 : undefined;
 
-    return {op, city, id};
+    return {op, bookCreature: city, id};
 }
 
 export const openCitiesSocket = (onMessage: (data: CitiesWsEnvelope) => void, url = apiRoutes.ws.base) => {

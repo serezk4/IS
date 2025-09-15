@@ -13,9 +13,9 @@ import {
     Label,
 } from "@/shared/ui-toolkit";
 import {useTokenRotation} from "@/app/utilities/providers/auth-provider/useTokenRotation";
-import {deleteOneByGovernment} from "@/app/utilities/providers/auth-provider/api-layer";
+import {deleteOneByAttackLevel} from "@/app/utilities/providers/auth-provider/api-layer";
 
-export function DeleteByGovermentModal({
+export function DeleteByAttackLevelModal({
                                            open,
                                            onOpenChange,
                                            onSuccess,
@@ -25,22 +25,24 @@ export function DeleteByGovermentModal({
     onSuccess?: () => void;
 }) {
     const {accessToken} = useTokenRotation();
-    const [government, setGovernment] = useState<string>("");
+    const [attackLevel, setAttackLevel] = useState<number>()
     const [pending, setPending] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
 
-    const canSubmit = !!government && !pending;
+    const canSubmit = !!attackLevel && !pending;
 
     const run = async () => {
-        if (!government.trim()) {
-            setMessage("Укажите тип правления: PUPPET_STATE, THALASSOCRACY или TELLUROCRACY)");
-            return;
-        }
         setPending(true);
         setMessage(null);
 
+        if (!attackLevel) {
+            setMessage("Введите корректный уровень атаки");
+            setPending(false);
+            return;
+        }
+
         const token = await accessToken;
-        const res = await deleteOneByGovernment(government.trim(), token);
+        const res = await deleteOneByAttackLevel(attackLevel, token);
 
         setPending(false);
 
@@ -61,20 +63,19 @@ export function DeleteByGovermentModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Удалить один объект по типу правления</DialogTitle>
+                    <DialogTitle>Удалить один объект по силе атаки</DialogTitle>
                     <DialogDescription>
-                        Введите тип правления. Будет удалён один объект, соответствующий указанному типу.
+                        Введите уровень атаки, чтобы удалить один объект с таким
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="government">Тип правления</Label>
+                        <Label htmlFor="attackLevel">Уровень атаки</Label>
                         <Input
-                            id="government"
-                            value={government}
-                            onChange={(e) => setGovernment(e.target.value)}
-                            placeholder="Например: PUPPET_STATE"
+                            id="attackLevel"
+                            onChange={(e) => setAttackLevel(e.target.value)}
+                            placeholder="0"
                         />
                     </div>
 
@@ -102,4 +103,4 @@ export function DeleteByGovermentModal({
     );
 }
 
-export default DeleteByGovermentModal;
+export default DeleteByAttackLevelModal;

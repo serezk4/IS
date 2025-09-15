@@ -2,7 +2,12 @@
 
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useTokenRotation} from "@/app/utilities/providers/auth-provider/useTokenRotation";
-import {City, getCities, normalizeWs, openCitiesSocket} from "@/app/utilities/providers/auth-provider/api-layer";
+import {
+    BookCreature,
+    getCities,
+    normalizeWs,
+    openCitiesSocket
+} from "@/app/utilities/providers/auth-provider/api-layer";
 import {
     Button,
     DropdownMenu,
@@ -27,26 +32,23 @@ import {
     Trash2
 } from "lucide-react";
 import * as RTooltip from "@radix-ui/react-tooltip";
-import EditCityModal from "@/shared/ui-toolkit/edit-city";
+import EditCityModal from "@/shared/ui-toolkit/edit-book-creature";
 import {useAuthContext} from "@/app/utilities";
 
 type SortOrder = 'asc' | 'desc';
 
 const columnsDef = [
     {key: 'id', label: '#'},
-    {key: 'ownerSub', label: 'владелец'},
+    {key: 'ownerEmail', label: 'владелец'},
     {key: 'name', label: 'название'},
     {key: 'coordinates', label: 'координаты'},
     {key: 'creationDate', label: 'создан'},
-    {key: 'area', label: 'площадь'},
-    {key: 'population', label: 'население'},
-    {key: 'establishmentDate', label: 'построен'},
-    {key: 'capital', label: 'capital'},
-    {key: 'metersAboveSeaLevel', label: 'высота'},
-    {key: 'timezone', label: 'часовой пояс'},
-    {key: 'climate', label: 'климат'},
-    {key: 'government', label: 'политика'},
-    {key: 'governor', label: 'губернатор'},
+    {key: 'age', label: 'возраст'},
+    {key: 'creatureType', label: 'тип'},
+    {key: 'creatureLocation', label: 'локация'},
+    {key: 'attackLevel', label: 'атака'},
+    {key: 'defenseLevel', label: 'защита'},
+    {key: 'ring', label: 'кольцо'}
 ] as const;
 
 const cellBase = "border-b border-border px-3 py-2 align-middle";
@@ -63,9 +65,10 @@ function makePreset(keys: ColKey[]): Record<string, boolean> {
 
 const PRESETS = {
     all: {...ALL_TRUE},
-    minimum: makePreset(['id', 'name', 'population']),
-    geo: makePreset(['name', 'coordinates', 'area', 'metersAboveSeaLevel', 'timezone']),
-    info: makePreset(['id', 'name', 'creationDate', 'establishmentDate', 'capital', 'climate', 'government', 'governor']),
+    minimum: makePreset(['id', 'ownerEmail', 'name', 'creatureType']),
+    geo: makePreset(['name', 'coordinates', 'ownerEmail', 'age', 'creatureType', 'ring']),
+    info: makePreset(['name', 'coordinates', 'ownerEmail', 'age', 'creatureType', 'ring', 'creatureLocation']),
+    stats: makePreset(['name', 'attackLevel', 'defenseLevel']),
 } as const;
 
 type PresetName = keyof typeof PRESETS;
@@ -108,10 +111,79 @@ function formatDateReadable(v: unknown): string {
     return hasTime ? RU_DATE_TIME.format(dt) : RU_DATE.format(dt);
 }
 
+function RingCell({ring}: { ring?: any }) {
+    if (!ring) return <span className="text-muted-foreground">—</span>;
+    const name = ring.name ?? '—';
+    const weight = ring.weight != null ? Number(ring.weight).toLocaleString() : '—';
+    return (
+        <div className="inline-flex items-center gap-2 max-w-full">
+            <div className="space-y-1 text-sm">
+      <span
+          className="inline-flex flex-col gap-1 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-[12px] font-mono max-w-full">
+            <div>
+                <span className="shrink-0 font-medium">Название:</span>
+                <span className="tabular-nums truncate">{name}</span>
+            </div>
+            <div>
+                <span className="shrink-0 font-medium">Вес:</span>
+                <span className="tabular-nums truncate">{weight} г.</span>
+            </div>
+      </span></div></div>
+    );
+}
+
+function CreatureLocationCell({creatureLocation}: { creatureLocation?: any }) {
+    if (!creatureLocation) return <span className="text-muted-foreground">—</span>;
+    const name = creatureLocation.name ?? '—';
+    const area = creatureLocation.area != null ? Number(creatureLocation.area).toLocaleString() : '—';
+    const population = creatureLocation.population != null ? Number(creatureLocation.population).toLocaleString() : '—';
+    const estDate = formatDateReadable(creatureLocation.establishmentDate);
+    const governor = creatureLocation.governor?.birthday ? formatDateReadable(creatureLocation.governor.birthday) : '—';
+    const isCapital = creatureLocation.isCapital == null ? '—' : (creatureLocation.isCapital ? 'Yes' : 'No');
+    const popDensity = creatureLocation.populationDensity != null ? Number(creatureLocation.populationDensity).toLocaleString() : '—';
+    return (
+        <div className="inline-flex items-center gap-2 max-w-full">
+            <div className="space-y-1 text-sm">
+      <span
+          className="inline-flex flex-col gap-1 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-[12px] font-mono max-w-full">
+        <div>
+          <span className="shrink-0 font-medium">Название </span>
+          <span className="tabular-nums truncate">{name}</span>
+        </div>
+        <div>
+          <span className="shrink-0 font-medium">Площадь </span>
+          <span className="tabular-nums truncate">{area}</span>
+        </div>
+        <div>
+          <span className="shrink-0 font-medium">Население </span>
+          <span className="tabular-nums truncate">{population}</span>
+        </div>
+        <div>
+          <span className="shrink-0 font-medium">Дата основания </span>
+          <span className="tabular-nums truncate">{estDate}</span>
+        </div>
+        <div>
+          <span className="shrink-0 font-medium">Губернатор </span>
+          <span className="tabular-nums truncate">{governor}</span>
+        </div>
+        <div>
+          <span className="shrink-0 font-medium">Столица </span>
+          <span className="tabular-nums truncate">{isCapital}</span>
+        </div>
+        <div>
+          <span className="shrink-0 font-medium">Плотность населения </span>
+          <span className="tabular-nums truncate">{popDensity}</span>
+        </div>
+      </span>
+            </div>
+        </div>
+    );
+}
+
 function CoordinatesCell({coords}: { coords?: any }) {
     if (!coords) return <span className="text-muted-foreground">—</span>;
-    const x = coords.x, y = coords.y, r = 'r' in coords ? coords.r : undefined;
-    const text = r !== undefined ? `x=${x}, y=${y}, r=${r}` : `x=${x}, y=${y}`;
+    const x = coords.x, y = coords.y;
+    const text = `x=${x}, y=${y}`;
     const copy = () => navigator.clipboard?.writeText(text).catch(() => {
     });
     const fmt = (v: number) => Number(v).toLocaleString();
@@ -121,8 +193,6 @@ function CoordinatesCell({coords}: { coords?: any }) {
           className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-[12px] font-mono max-w-full">
         <span className="shrink-0">x:</span><span className="tabular-nums truncate">{fmt(x)}</span>
         <span className="shrink-0">y:</span><span className="tabular-nums truncate">{fmt(y)}</span>
-          {r !== undefined && (<><span className="shrink-0">r:</span><span
-              className="tabular-nums truncate">{fmt(r)}</span></>)}
       </span>
             <RTooltip.Root>
                 <RTooltip.Trigger asChild>
@@ -139,7 +209,7 @@ function CoordinatesCell({coords}: { coords?: any }) {
     );
 }
 
-type HoverState = { x: number; y: number; row?: City } | null;
+type HoverState = { x: number; y: number; row?: BookCreature } | null;
 
 function RowHoverCard({state}: { state: HoverState }) {
     if (!state?.row) return null;
@@ -150,34 +220,28 @@ function RowHoverCard({state}: { state: HoverState }) {
             style={{left: state.x + 12, top: state.y + 12}}>
             <div className="mb-2 text-xs font-semibold text-muted-foreground">Полная информация</div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-                <div className="text-muted-foreground">id</div>
+                <div className="text-muted-foreground">#</div>
                 <div>{r.id}</div>
                 <div className="text-muted-foreground">владелец</div>
-                <div className="truncate">{r.ownerName ?? "—"}</div>
-                <div className="text-muted-foreground">name</div>
+                <div className="truncate">{r.ownerEmail ?? "—"}</div>
+                <div className="text-muted-foreground">название</div>
                 <div className="font-medium truncate">{r.name ?? "—"}</div>
-                <div className="text-muted-foreground">coordinates</div>
+                <div className="text-muted-foreground">координаты</div>
                 <div><CoordinatesCell coords={r.coordinates}/></div>
-                <div className="text-muted-foreground">creationDate</div>
+                <div className="text-muted-foreground">город</div>
+                <div><CreatureLocationCell creatureLocation={r.creatureLocation}/></div>
+                <div className="text-muted-foreground">дата создания</div>
                 <div>{formatDateReadable(r.creationDate)}</div>
-                <div className="text-muted-foreground">area</div>
-                <div>{r.area ?? "—"}</div>
-                <div className="text-muted-foreground">population</div>
-                <div>{(r as any)?.population?.toLocaleString?.() ?? r.population ?? "—"}</div>
-                <div className="text-muted-foreground">establishmentDate</div>
-                <div>{formatDateReadable(r.establishmentDate)}</div>
-                <div className="text-muted-foreground">capital</div>
-                <div>{r.capital ? "Yes" : "No"}</div>
-                <div className="text-muted-foreground">metersAboveSeaLevel</div>
-                <div>{r.metersAboveSeaLevel ?? "—"}</div>
-                <div className="text-muted-foreground">timezone</div>
-                <div>{r.timezone ?? "—"}</div>
-                <div className="text-muted-foreground">climate</div>
-                <div>{r.climate ?? "—"}</div>
-                <div className="text-muted-foreground">government</div>
-                <div>{r.government ?? "—"}</div>
-                <div className="text-muted-foreground">governor</div>
-                <div>{r.governor ? `Birthday: ${formatDateReadable(r.governor.birthday)}` : "—"}</div>
+                <div className="text-muted-foreground">возраст</div>
+                <div>{r.age ?? "—"}</div>
+                <div className="text-muted-foreground">тип создания</div>
+                <div>{r.creatureType ?? "—"}</div>
+                <div className="text-muted-foreground">уровень атаки</div>
+                <div>{r.attackLevel}</div>
+                <div className="text-muted-foreground">уровень защиты</div>
+                <div>{r.defenseLevel}</div>
+                <div className="text-muted-foreground">кольцо</div>
+                <div><RingCell ring={r.ring}/></div>
             </div>
         </div>
     );
@@ -215,50 +279,40 @@ const Table: React.FC<TableProps> = ({fullWidth: fullWidthProp, smartColumns: sm
     const fullWidth = fullWidthState;
     const [sortField, setSortField] = useState<string>('id');
     const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-    const [cities, setCities] = useState<City[]>([]);
+    const [cities, setBookCreatures] = useState<BookCreature[]>([]);
     const [size, setSize] = useState(10);
     const [totalElements, setTotalElements] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [pageIndex, setPageIndex] = useState(0);
     const [pageInput, setPageInput] = useState("1");
 
-    const [prevTail, setPrevTail] = useState<City | null>(null);
-    const [nextHead, setNextHead] = useState<City | null>(null);
+    const [prevTail, setPrevTail] = useState<BookCreature | null>(null);
+    const [nextHead, setNextHead] = useState<BookCreature | null>(null);
 
-    const getFieldValue = (c: City, key: string) => {
+    const getFieldValue = (c: BookCreature, key: string) => {
         switch (key) {
             case 'id':
                 return c.id ?? 0;
-            case 'ownerSub':
-                return c.ownerName ?? '';
+            case 'ownerEmail':
+                return c.ownerEmail ?? '';
             case 'name':
                 return c.name ?? '';
-            case 'area':
-                return c.area ?? 0;
-            case 'population':
-                return c.population ?? 0;
+            case 'age':
+                return c.age ?? 0;
+            case 'creatureType':
+                return c.creatureType ?? '';
             case 'creationDate':
                 return toEpochMs(c.creationDate) ?? 0;
-            case 'establishmentDate':
-                return toEpochMs(c.establishmentDate) ?? 0;
-            case 'governor':
-                return toEpochMs(c.governor?.birthday) ?? 0;
-            case 'capital':
-                return c.capital ? 1 : 0;
-            case 'metersAboveSeaLevel':
-                return c.metersAboveSeaLevel ?? 0;
-            case 'timezone':
-                return c.timezone ?? 0;
-            case 'climate':
-                return c.climate ?? '';
-            case 'government':
-                return c.government ?? '';
+            case 'attackLevel':
+                return c.attackLevel ?? 0;
+            case 'defenseLevel':
+                return c.defenseLevel ?? 0;
             default:
                 return (c as any)[key] ?? '';
         }
     };
 
-    const cmp = (a: City, b: City, sortKey: string, order: SortOrder) => {
+    const cmp = (a: BookCreature, b: BookCreature, sortKey: string, order: SortOrder) => {
         const va = getFieldValue(a, sortKey);
         const vb = getFieldValue(b, sortKey);
         let r = 0;
@@ -268,7 +322,7 @@ const Table: React.FC<TableProps> = ({fullWidth: fullWidthProp, smartColumns: sm
         return order === 'asc' ? r : -r;
     };
 
-    const belongsByBoundaries = (item: City, prev: City | null, next: City | null) => {
+    const belongsByBoundaries = (item: BookCreature, prev: BookCreature | null, next: BookCreature | null) => {
         const gtPrev = prev ? cmp(item, prev, sortField, sortOrder) > 0 : true;
         const ltNext = next ? cmp(item, next, sortField, sortOrder) < 0 : true;
         return gtPrev && ltNext;
@@ -276,9 +330,9 @@ const Table: React.FC<TableProps> = ({fullWidth: fullWidthProp, smartColumns: sm
 
     useEffect(() => {
         const sub = openCitiesSocket((raw) => {
-            const {op, city: incoming, id: msgId} = normalizeWs(raw);
+            const {op, bookCreature: incoming, id: msgId} = normalizeWs(raw);
             if (!op) return;
-            setCities((prev) => {
+            setBookCreatures((prev) => {
                 const current = prev ?? [];
                 if (op === 'delete') {
                     const delId = msgId ?? (incoming?.id != null ? Number(incoming.id) : undefined);
@@ -321,7 +375,7 @@ const Table: React.FC<TableProps> = ({fullWidth: fullWidthProp, smartColumns: sm
         getCities(accessToken, pageIdx, pageSize, sort, {signal: ctrl.signal})
             .then(res => {
                 if (!res || ctrl.signal.aborted) return;
-                setCities(res.content ?? []);
+                setBookCreatures(res.content ?? []);
                 setTotalElements(res.totalElements ?? 0);
                 setTotalPages(res.totalPages ?? 0);
                 setPageIndex(res.page);
@@ -437,7 +491,7 @@ const Table: React.FC<TableProps> = ({fullWidth: fullWidthProp, smartColumns: sm
         });
     };
     const clearHidden = () => setHiddenIds(new Set());
-    const [editTarget, setEditTarget] = useState<City | null>(null);
+    const [editTarget, setEditTarget] = useState<BookCreature | null>(null);
 
     const allVisibleCols = useMemo(() => columnsDef.filter(c => visibleColumns[c.key]), [visibleColumns]);
     const dataForMeasure = useMemo(() => (showHidden ? cities : cities.filter(r => !hiddenIds.has(r.id ?? -1))), [cities, hiddenIds, showHidden]);
@@ -521,9 +575,9 @@ const Table: React.FC<TableProps> = ({fullWidth: fullWidthProp, smartColumns: sm
                                     <Button variant="secondary" size="sm"
                                             onClick={() => applyPreset('minimum')}>Минимум</Button>
                                     <Button variant="secondary" size="sm"
-                                            onClick={() => applyPreset('geo')}>Гео</Button>
+                                            onClick={() => applyPreset('geo')}>Околоминимум</Button>
                                     <Button variant="secondary" size="sm"
-                                            onClick={() => applyPreset('info')}>Инфо</Button>
+                                            onClick={() => applyPreset('stats')}>Статы</Button>
                                     <Button variant="secondary" size="sm"
                                             onClick={() => applyPreset('all')}>Все</Button>
                                 </div>
@@ -666,11 +720,11 @@ const Table: React.FC<TableProps> = ({fullWidth: fullWidthProp, smartColumns: sm
                                                             className={isHidden ? "line-through" : ""}>{row.id}</span>)}
                                                     </td>
                                                 );
-                                            case 'ownerSub':
+                                            case 'ownerEmail':
                                                 return (
                                                     <td key={`${row.id}-ownerSub`} className={tdCls} style={tdStyle}>
-                                                        {wrap(row.ownerName ?? <span
-                                                            className="text-muted-foreground">—</span>, row.ownerName ?? "")}
+                                                        {wrap(row.ownerEmail ?? <span
+                                                            className="text-muted-foreground">—</span>, row.ownerEmail ?? "")}
                                                     </td>
                                                 );
                                             case 'name':
@@ -693,72 +747,42 @@ const Table: React.FC<TableProps> = ({fullWidth: fullWidthProp, smartColumns: sm
                                                         {wrap(formatDateReadable(row.creationDate))}
                                                     </td>
                                                 );
-                                            case 'area':
+                                            case 'age':
                                                 return (
-                                                    <td key={`${row.id}-area`} className={tdCls} style={tdStyle}>
-                                                        {wrap(`${row.area} кв.км` ??
-                                                            <span className="text-muted-foreground">—</span>)}
+                                                    <td key={`${row.id}-age`} className={tdCls} style={tdStyle}>
+                                                        {wrap(`${row.age} лет`)}
                                                     </td>
                                                 );
-                                            case 'population':
+                                            case 'creatureType':
                                                 return (
-                                                    <td key={`${row.id}-population`} className={tdCls} style={tdStyle}>
-                                                        {wrap(`${row.population} чел`)}
-                                                    </td>
-                                                );
-                                            case 'establishmentDate':
-                                                return (
-                                                    <td key={`${row.id}-establishmentDate`} className={tdCls}
+                                                    <td key={`${row.id}-creatureType`} className={tdCls}
                                                         style={tdStyle}>
-                                                        {wrap(formatDateReadable(row.establishmentDate))}
+                                                        {wrap(`${row.creatureType}`)}
                                                     </td>
                                                 );
-                                            case 'capital':
+                                            case 'creatureLocation':
                                                 return (
-                                                    <td key={`${row.id}-capital`} className={tdCls} style={tdStyle}>
-                                                        {wrap(
-                                                            <span className={row.capital
-                                                                ? "rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                                                                : "rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-foreground/70"}>
-                                {row.capital ? 'Yes' : 'No'}
-                              </span>
-                                                        )}
+                                                    <td key={`${row.id}-creatureLocation`} className={tdCls}
+                                                        style={tdStyle}>
+                                                        <CreatureLocationCell creatureLocation={row.creatureLocation}/>
                                                     </td>
                                                 );
-                                            case 'metersAboveSeaLevel':
+                                            case 'attackLevel':
                                                 return (
-                                                    <td key={`${row.id}-masl`} className={tdCls} style={tdStyle}>
-                                                        {wrap(`${row.metersAboveSeaLevel} м` ?? "—")}
+                                                    <td key={`${row.id}-attackLevel`} className={tdCls} style={tdStyle}>
+                                                        {wrap(`${row.attackLevel}`)}
                                                     </td>
                                                 );
-                                            case 'timezone':
+                                            case 'ring':
                                                 return (
                                                     <td key={`${row.id}-tz`} className={tdCls} style={tdStyle}>
-                                                        {wrap(row.timezone ?? "—")}
+                                                        <RingCell ring={row.ring}/>
                                                     </td>
                                                 );
-                                            case 'climate':
+                                            case "defenseLevel":
                                                 return (
-                                                    <td key={`${row.id}-climate`} className={tdCls} style={tdStyle}>
-                                                        {wrap(row.climate ?? "—")}
-                                                    </td>
-                                                );
-                                            case 'government':
-                                                return (
-                                                    <td key={`${row.id}-gov`} className={tdCls} style={tdStyle}>
-                                                        {wrap(row.government ?? "—")}
-                                                    </td>
-                                                );
-                                            case 'governor':
-                                                return (
-                                                    <td key={`${row.id}-governor`} className={tdCls} style={tdStyle}>
-                                                        {wrap(
-                                                            row.governor
-                                                                ? <span
-                                                                    className="text-sm">др: {formatDateReadable(row.governor.birthday)}</span>
-                                                                : <span
-                                                                    className="text-muted-foreground">Нет данных</span>
-                                                        )}
+                                                    <td key={`${row.id}-defenseLevel`} className={tdCls} style={tdStyle}>
+                                                        {wrap(`${row.defenseLevel}`)}
                                                     </td>
                                                 );
                                             default:

@@ -730,6 +730,10 @@ components:
       type: object
       description: Сущность волшебного существа (BookCreature)
       properties:
+        isYours:
+          type: boolean
+          readOnly: true
+          description: Имеет ли текущий пользователь право изменять/удалять этот объект
         id:
           type: integer
           format: int64
@@ -785,7 +789,6 @@ components:
           readOnly: true
           description: Дата последнего изменения (timestamptz)
       required:
-        - ownerSub
         - name
         - coordinates
         - creatureType
@@ -812,7 +815,7 @@ components:
           description: Население города (обязательное поле, > 0)
         establishmentDate:
           type: string
-          format: date-time
+          format: date
           nullable: true
           description: Дата основания города
         governor:

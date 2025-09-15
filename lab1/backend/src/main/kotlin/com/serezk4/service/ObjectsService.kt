@@ -91,12 +91,20 @@ class ObjectsService(
     }
 
     @CacheEvict(value = ["creatures"], allEntries = true)
-    fun deleteByAttackLevel(attackLevel: Long): BookCreatureDto? =
-        bookCreatureRepository.deleteTopByAttackLevelAndOwnerSub(attackLevel, sub)
-            ?.also { if (accessService.isAdmin()) bookCreatureRepository.deleteTopByAttackLevel(attackLevel) }
-            ?.toDto()
+    fun deleteByAttackLevel(attackLevel: Long): BookCreatureDto {
+        val bookCreature = bookCreatureRepository.findByAttackLevelAndOwnerSub(attackLevel, sub)
+            ?: bookCreatureRepository.findByAttackLevel(attackLevel)
+                ?.takeIf { accessService.isAdmin() }
+            ?: throw ObjectNotFoundException()
+
+        return bookCreature
+            .also { bookCreatureRepository.delete(bookCreature) }
+            .also { websocketAdapter.broadcast(UpdateNotification(it, DELETE)) }
+            .toDto()
+    }
 
     @CacheEvict(value = ["creatures"], allEntries = true)
+    @Transactional
     fun distributeRings() {
         val creatures = if (accessService.isAdmin()) {
             bookCreatureRepository.findAll()
@@ -105,23 +113,20 @@ class ObjectsService(
         }
         if (creatures.isEmpty()) return
 
-        val rings = creatures.mapNotNull { it.ring }.shuffled()
+        val rings = creatures.mapNotNull { it.ring }.distinctBy { it.id }.shuffled()
         if (rings.isEmpty()) return
 
-        val shuffledCreatures = creatures.shuffled()
+        val shuffled = creatures.shuffled()
+        val pairs: List<Pair<Long, Long?>> =
+            shuffled.mapIndexed { i, c -> (c.id ?: return) to rings.getOrNull(i)?.id }
 
-        var changed = false
-        shuffledCreatures.forEachIndexed { i, c ->
-            val newRing = rings.getOrNull(i)
-            if ((c.ring?.id ?: 0L) != (newRing?.id ?: 0L)) {
-                c.ring = newRing
-                changed = true
-            }
-        }
-        if (!changed) return
+        val touchedIds = pairs.map { it.first }
+        bookCreatureRepository.bulkClearRings(touchedIds)
 
-        bookCreatureRepository.saveAll(shuffledCreatures)
-            .forEach { websocketAdapter.broadcast(UpdateNotification(it, UPDATE)) }
+        pairs.forEach { (creatureId, ringId) -> bookCreatureRepository.assignRing(creatureId, ringId) }
+
+        val updated = bookCreatureRepository.findAllById(touchedIds)
+        updated.forEach { websocketAdapter.broadcast(UpdateNotification(it, UPDATE)) }
     }
 
     fun getObjectsPerUserStats(): List<ObjectsPerUserStatsDto> {

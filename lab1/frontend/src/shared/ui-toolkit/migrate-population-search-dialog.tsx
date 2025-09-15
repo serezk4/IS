@@ -10,7 +10,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/shared/ui-toolkit";
-import {City, migratePopulation,} from "@/app/utilities/providers/auth-provider/api-layer";
+import {BookCreature, migratePopulation,} from "@/app/utilities/providers/auth-provider/api-layer";
 import {useTokenRotation} from "@/app/utilities/providers/auth-provider/useTokenRotation";
 import CitySearchSelect from "@/shared/ui-toolkit/city-search-select";
 
@@ -24,8 +24,8 @@ export function MigratePopulationSearchDialog({
     onSuccess?: () => void;
 }) {
     const {accessToken} = useTokenRotation();
-    const [fromCity, setFromCity] = useState<City>();
-    const [toCity, setToCity] = useState<City>();
+    const [fromCity, setFromCity] = useState<BookCreature>();
+    const [toCity, setToCity] = useState<BookCreature>();
     const [pending, setPending] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
 

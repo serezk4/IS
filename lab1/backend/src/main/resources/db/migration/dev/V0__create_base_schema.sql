@@ -84,17 +84,17 @@ CREATE TABLE IF NOT EXISTS book_creatures
     CONSTRAINT fk_book_creatures_coordinates
         FOREIGN KEY (coordinates_id)
             REFERENCES coordinates (id)
-            ON DELETE RESTRICT,
+            ON DELETE CASCADE,
 
     CONSTRAINT fk_book_creatures_creature_location
         FOREIGN KEY (creature_location_id)
             REFERENCES magic_cities (id)
-            ON DELETE RESTRICT,
+            ON DELETE CASCADE,
 
     CONSTRAINT fk_book_creatures_ring
         FOREIGN KEY (ring_id)
             REFERENCES rings (id)
-            ON DELETE SET NULL
+            ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_book_creatures_owner_sub ON book_creatures (owner_sub);

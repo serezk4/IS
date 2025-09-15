@@ -5,7 +5,6 @@ import com.serezk4.api.model.BookCreatureDto
 import com.serezk4.api.model.CreateTestObjects200Response
 import com.serezk4.api.model.GroupedByCreatureTypeDto
 import com.serezk4.api.model.ObjectsPerUserStatsDto
-import com.serezk4.exception.ObjectNotFoundException
 import com.serezk4.service.ObjectsService
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import org.springframework.http.HttpStatus
@@ -25,9 +24,7 @@ class UtilsController(
 
     @RateLimiter(name = "default")
     override fun deleteByAttackLevel(attackLevel: Long): ResponseEntity<BookCreatureDto> {
-        val deleted = objectsService.deleteByAttackLevel(attackLevel)
-            ?: throw ObjectNotFoundException()
-        return ResponseEntity.ok(deleted)
+        return ResponseEntity.ok(objectsService.deleteByAttackLevel(attackLevel))
     }
 
     @RateLimiter(name = "default")

@@ -2,7 +2,7 @@
 
 import {useEffect, useRef, useState} from "react";
 import {Input, Label} from "@/shared/ui-toolkit";
-import {City, getCity} from "@/app/utilities/providers/auth-provider/api-layer";
+import {BookCreature, getCity} from "@/app/utilities/providers/auth-provider/api-layer";
 import {useTokenRotation} from "@/app/utilities/providers/auth-provider/useTokenRotation";
 import {useAuthContext} from "@/app/utilities";
 
@@ -17,11 +17,11 @@ export function CitySearchSelect({
     placeholder?: string;
     excludeId?: number;
     minChars?: number;
-    onSelect: (city: City | undefined) => void;
+    onSelect: (city: BookCreature | undefined) => void;
 }) {
     const {accessToken} = useTokenRotation();
     const [q, setQ] = useState("");
-    const [items, setItems] = useState<City[]>([]);
+    const [items, setItems] = useState<BookCreature[]>([]);
     const [loading, setLoading] = useState(false);
     const abortRef = useRef<AbortController | null>(null);
     const debounceRef = useRef<number | undefined>(undefined);

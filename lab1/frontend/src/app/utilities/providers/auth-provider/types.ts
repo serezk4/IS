@@ -26,6 +26,25 @@ export interface UserClaims {
 
 export type UserResponse = UserClaims
 
+export type BookCreatureCreatePayload = {
+    name: string;
+    coordinates: { x: number; y: number };
+    age?: number | null;
+    creatureType: "HOBBIT" | "ELF" | "HUMAN";
+    creatureLocation: {
+        name: string;
+        area: number;
+        population: number;
+        establishmentDate?: string | null;
+        governor: { birthday?: string | null };
+        isCapital?: boolean | null;
+        populationDensity: number;
+    }
+    attackLevel: number;
+    defenseLevel: number;
+    ring: { name: string; weight: number } | null;
+};
+
 export type CityCreatePayload = {
     name: string;
     coordinates: { x: number; y: number };

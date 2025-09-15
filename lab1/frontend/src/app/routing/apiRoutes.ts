@@ -15,7 +15,12 @@ export const apiRoutes = {
         migrate_base: `${process.env.NEXT_PUBLIC_API_BASE_URL}/objects`,
         migrate_half: `${process.env.NEXT_PUBLIC_API_BASE_URL}/objects/capital/migrate-half`,
         by_goverment: `${process.env.NEXT_PUBLIC_API_BASE_URL}/objects/government`,
-        by_timezone: `${process.env.NEXT_PUBLIC_API_BASE_URL}/objects/timezone`,
+        by_attack_level: `${process.env.NEXT_PUBLIC_API_BASE_URL}/utils/delete/by-attack-level`,
+        distribute_rings: `${process.env.NEXT_PUBLIC_API_BASE_URL}/distribute-rings`,
+        by_timezone: `${process.env.NEXT_PUBLIC_API_BASE_URL}/utils/delete/by-attack-level/`,
+        stats_per_user: `${process.env.NEXT_PUBLIC_API_BASE_URL}/stats/objects-per-user`,
+        unique_defense_levels: `${process.env.NEXT_PUBLIC_API_BASE_URL}/utils/unique/defense-levels`,
+        group_by_creature_type: `${process.env.NEXT_PUBLIC_API_BASE_URL}/utils/group-by/creature-type`,
     },
     ws: {
         base: process.env.NEXT_PUBLIC_WS_BASE_URL,

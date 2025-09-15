@@ -12,6 +12,7 @@ import jakarta.persistence.Table
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
+import java.time.LocalDate
 import java.time.OffsetDateTime
 
 @Entity
@@ -35,7 +36,7 @@ data class MagicCity(
     var population: Long,
 
     @Column(name = "establishment_date", columnDefinition = "timestamptz")
-    var establishmentDate: OffsetDateTime? = null,
+    var establishmentDate: LocalDate? = null,
 
     @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JoinColumn(name = "governor_id")

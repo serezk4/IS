@@ -15,4 +15,4 @@ export * from './pagination';
 export * from './radio-group';
 export * from './table';
 export * from './command';
-export * from './add-city'
+export * from './add-book-creature'

@@ -9,6 +9,8 @@ import com.serezk4.api.model.MagicCityDto
 import com.serezk4.api.model.RealmAccessDto
 import com.serezk4.api.model.ResourceRolesDto
 import com.serezk4.api.model.RingDto
+import com.serezk4.config.security.util.userOpt
+import com.serezk4.constants.ADMIN
 import com.serezk4.entity.BookCreature
 import com.serezk4.entity.Coordinates
 import com.serezk4.entity.Human
@@ -34,8 +36,8 @@ fun BookCreatureDto.toEntity() = BookCreature(
 )
 
 fun BookCreature.toDto() = BookCreatureDto(
-    ownerSub = this.ownerSub!!,
-    ownerEmail = this.ownerEmail!!,
+    ownerSub = this.ownerSub,
+    ownerEmail = this.ownerEmail,
     name = this.name!!,
     coordinates = this.coordinates.toDto(),
     age = this.age,
@@ -46,6 +48,7 @@ fun BookCreature.toDto() = BookCreatureDto(
     id = this.id,
     ring = this.ring?.toDto(),
     creationDate = this.creationDate,
+    isYours = userOpt?.sub == this.ownerSub || userOpt?.realmAccess?.roles?.contains(ADMIN) == true,
 )
 
 fun MagicCity.toDto() = MagicCityDto(
@@ -65,7 +68,7 @@ fun Ring.toDto() = RingDto(
 )
 
 fun RingDto.toEntity() = Ring(
-    id = this.id,
+    weight = this.weight,
     name = this.name
 )
 

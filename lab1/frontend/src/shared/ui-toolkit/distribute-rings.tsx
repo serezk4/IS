@@ -13,9 +13,9 @@ import {
     Label,
 } from "@/shared/ui-toolkit";
 import {useTokenRotation} from "@/app/utilities/providers/auth-provider/useTokenRotation";
-import {deleteAllByTimezone} from "@/app/utilities/providers/auth-provider/api-layer";
+import {distributeRings} from "@/app/utilities/providers/auth-provider/api-layer";
 
-export function DeleteByTimezoneModal({
+export function DistributeRings({
                                           open,
                                           onOpenChange,
                                           onSuccess,
@@ -29,22 +29,14 @@ export function DeleteByTimezoneModal({
     const [pending, setPending] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
 
-    const canSubmit = !!timezone && !pending;
+    const canSubmit = true
 
     const run = async () => {
-        if (!timezone.trim()) {
-            setMessage("Укажите таймзону (например, 3, 5 или -2)");
-            return;
-        }
-        if (timezone.trim().length > 3 || isNaN(Number(timezone.trim()))) {
-            setMessage("Таймзона должна быть числом от -12 до 14");
-            return;
-        }
         setPending(true);
         setMessage(null);
 
         const token = await accessToken;
-        const res = await deleteAllByTimezone(Number(timezone.trim()), token);
+        const res = await distributeRings(token);
 
         setPending(false);
 
@@ -65,29 +57,11 @@ export function DeleteByTimezoneModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Удалить один объект по таймзоне</DialogTitle>
+                    <DialogTitle>Перераспределить кольца</DialogTitle>
                     <DialogDescription>
-                        Введите таймзону. Будет удалён один объект, соответствующий указанной таймзоне.
+                        Кольца будут перераспределены между всеми вашими объектами
                     </DialogDescription>
                 </DialogHeader>
-
-                <div className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="timezone">Таймзона</Label>
-                        <Input
-                            id="timezone"
-                            value={timezone}
-                            onChange={(e) => setTimezone(e.target.value)}
-                            placeholder="Например: 3"
-                        />
-                    </div>
-
-                    {message && (
-                        <div className="rounded border p-2 text-sm">
-                            {message}
-                        </div>
-                    )}
-                </div>
 
                 <DialogFooter>
                     <Button
@@ -98,7 +72,7 @@ export function DeleteByTimezoneModal({
                         Отмена
                     </Button>
                     <Button onClick={run} disabled={!canSubmit}>
-                        {pending ? "Выполняется..." : "Удалить"}
+                        {pending ? "Выполняется..." : "Перераспределить"}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -106,4 +80,4 @@ export function DeleteByTimezoneModal({
     );
 }
 
-export default DeleteByTimezoneModal;
+export default DistributeRings;
