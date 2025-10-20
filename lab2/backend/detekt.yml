@@ -1,0 +1,18 @@
+style:
+  ThrowsCount:
+    active: true
+    max: 5
+  MaxLineLength:
+    active: true
+    maxLineLength: 150
+  ForbiddenComment:
+    active: false
+  MagicNumber:
+    active: false
+  ReturnCount:
+    active: false
+complexity:
+  TooManyFunctions:
+    active: false
+  NestedBlockDepth:
+    active: false
