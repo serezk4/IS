@@ -1,0 +1,114 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration # хз
+  application:
+    name: backend
+  main:
+    banner-mode: off
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 5
+    driver-class-name: org.postgresql.Driver
+  data:
+    jpa:
+      repositories:
+        bootstrap-mode: lazy
+      properties:
+        eclipselink:
+          ddl-generation: validate
+          logging:
+            level: FINE
+            timestamp: true
+            thread: false
+            session: false
+          jdbc:
+            batch-writing: jdbc
+            batch-writing-size: 5000
+          order-updates: true
+          order-inserts: true
+          weave: static
+  cache:
+    type: redis
+  jackson:
+    deserialization:
+      fail-on-ignored-properties: false
+    serialization:
+      indent-output: false
+      write-dates-as-timestamps: false
+      write-bigdecimal-as-plain: true
+    date-format: yyyy-MM-dd'T'HH:mm:ss
+    property-naming-strategy: SNAKE_CASE
+  jpa:
+    show-sql: false
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        ddl-auto: validate
+        show-sql: false
+        format_sql: true
+        jdbc:
+          batch_size: 5000
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false
+      database-platform: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    out-of-order: true
+    batch: true
+
+springdoc:
+  swagger-ui:
+    use-root-path: true
+    urls:
+      - name: Backend API
+        display-name: Backend API
+        url: /api.yml
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: never
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/plain,text/css,text/javascript,application/javascript,application/x-javascript,application/x-www-form-urlencoded,application/octet-stream
+    min-response-size: 1024
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+resilience4j.ratelimiter:
+  instances:
+    default:
+      limit-for-period: 100
+      limit-refresh-period: 1s
+      timeout-duration: 0
+      event-consumer-buffer-size: 10
+    test:
+      limit-for-period: 2
+      limit-refresh-period: 30s
+      timeout-duration: 0
+      event-consumer-buffer-size: 10
+    signup:
+        limit-for-period: 3
+        limit-refresh-period: 1m
+        timeout-duration: 0
+        event-consumer-buffer-size: 10

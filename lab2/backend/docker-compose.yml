@@ -1,0 +1,122 @@
+services:
+  redis:
+    image: redis:latest
+    restart: on-failure
+    container_name: local-redis
+    ports:
+      - "0.0.0.0:6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    container_name: postgres-local
+    volumes:
+      - ~/volumes/postgres-data:/var/lib/postgresql/data
+    ports:
+      - "0.0.0.0:1232:5432"
+    environment:
+      POSTGRES_USER: backend
+      POSTGRES_PASSWORD: backend
+      POSTGRES_DB: backend
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
+    container_name: elasticsearch
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "true"
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      ELASTIC_PASSWORD: "changeme_elastic"
+      bootstrap.memory_lock: "true"
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+    volumes:
+      - ~/volumes/elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "0.0.0.0:9200:9200"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -s -u elastic:changeme_elastic http://localhost:9200 >/dev/null" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    restart: unless-stopped
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.14.3
+    container_name: logstash
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:5044:5044"
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.14.3
+    container_name: filebeat
+    restart: unless-stopped
+    depends_on:
+      - logstash
+    user: root
+    command: [ "-e", "-strict.perms=false" ]
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ~/volumes/backend-logs:/var/log/is:ro
+      - ~/volumes/filebeat-data:/usr/share/filebeat/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.14.3
+    container_name: kibana
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - "0.0.0.0:5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
+      ELASTICSEARCH_SERVICEACCOUNTTOKEN: "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYTo2dmR0UmZ1V1M4cVRucFpyNXkwVkh3"
+
+      XPACK_SECURITY_ENABLED: "true"
+      XPACK_SECURITY_ENCRYPTIONKEY: "xY2C6Vg9Nq4Lh0TsWf8Jp3Ru6Mz1Qa7e"
+      XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: "Q8wT3rV6yN1kD4sM9pF2aJ5lH8cB0zXe"
+      XPACK_REPORTING_ENCRYPTIONKEY: "Z1xC4vB7nM0kP3sW6dH9lA2jE5rT8qUy"
+      XPACK_REPORTING_ROLES_ENABLED: "false"
+      XPACK_SCREENSHOTTING_BROWSER_CHROMIUM_DISABLESANDBOX: "true"
+      SERVER_HOST: "0.0.0.0"
+    restart: unless-stopped
+
+  backend:
+    image: cr.yandex/crpa0c9avqe31tmi0mfu/is-lab1:latest
+    container_name: backend
+    volumes:
+      - ~/volumes/backend-logs:/var/log
+    build:
+      context: .
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: on-failure
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 5
+    depends_on:
+      - redis
+      - postgres
