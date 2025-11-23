@@ -106,6 +106,9 @@ dependencies {
     implementation(libs.commons.io)
     implementation(libs.jboss.resteasy.client)
     implementation(libs.opencsv.opencsv)
+    implementation(libs.apache.commons.dbcp2)
+    implementation(libs.alibaba.druid)
+    implementation(libs.alibaba.druid.starter)
 
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.security.test)
